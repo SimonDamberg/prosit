@@ -79,7 +79,7 @@ export function DuellTakeover({ event, payload, identity, members }: DuellProps)
           onPointerDown={shoot}
           className={cx(
             'flex h-64 w-full touch-none items-center justify-center rounded-lg font-display text-7xl leading-none font-bold select-none',
-            drawn ? 'bg-strafe text-white' : 'bg-paper-deep text-weste-dim ring-2 ring-koenig/40 ring-inset',
+            drawn ? 'animate-thud bg-strafe text-white' : 'bg-paper-deep text-weste-dim ring-2 ring-koenig/40 ring-inset',
             'disabled:opacity-50',
           )}
         >

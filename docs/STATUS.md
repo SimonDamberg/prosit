@@ -337,6 +337,70 @@ Simon's feedback on Stages 1 and 2: the app looked like Rally75, and the club ha
 - Manual steps 1 and 2 above are done. Still Simon's: a Duell on two real phones, and a reset
   with wipe if anyone joins twice before the party.
 
-**Next:** Stage 5 (Sound + takeover animations). Start a fresh session in `Hobby/prosit` with:
+## Stage 5: sound + takeover animations (done, 2026-10-13)
 
-> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 5.
+**Done**
+
+- **Sound.** `src/tv/score.ts` holds eleven cues as notes (pure data, tested) and
+  `src/tv/audio.ts` is a small synth that plays them: brass and tuba (detuned sawtooths through a
+  lowpass that opens with the attack), an additive bell, drum, snare, glass and gavel, through a
+  compressor. `play(cue)` replaces the four placeholder beeps.
+  - Start of an event: `prosit` (three bell strokes, a waltz phrase after "Ein Prosit der
+    Gemütlichkeit" over tuba and drums, then "oans, zwoa, drei" and a chord, 6.8 s), `regel`
+    (gavel and deep bell), `duell` (roll and minor chord), `abstimmung`, `schatzfrage`,
+    `trinkspruch` (spoon on glass, then a fanfare).
+  - New: a verdict sound (`tusch`, or the descending `strafe` trombone when the result hands out
+    a Strafe), `draw` at "Zieh!", `tick` for the last five seconds of a PROSIT!, `strafe` for a
+    hand-given Strafe, and `unlock` as the answer to the "Starta kvällen" tap on the TV.
+- **TV motion.** An event arrives in three beats (the Rauten drop like a banner, the sign falls
+  in, its lines rise one by one), turns over to its result, and lifts away instead of cutting to
+  the dashboard (`useLinger`). PROSIT! flashes the screen and stomps in; its countdown turns red
+  and pulses for the last five seconds. Duellists walk in from either side, "Zieh!" slams in with
+  a full-screen flash. A Strafe lands as a crooked rubber stamp, good news gets a brass rule,
+  a chip pops when its member answers.
+- **Phone motion (silent).** Event modals carry a Rauten band and drop in (`Modal band`), the
+  PROSIT! button breathes until tapped, the Duell pad thuds at the draw, the countdown goes red
+  like the TV's, and a bad verdict is stamped.
+- **`/styleguide`** (dev only, not in the build): tokens, type, buttons, surfaces, every
+  animation with a replay button, a sound board with measured levels, and every TV stage from
+  fixtures. `/styleguide?stage=<scene>` shows one stage alone at full size.
+- `CLAUDE.md` has a "Sound and motion" section and the `src/styleguide` folder rule.
+- Verified: 143 tests, lint and build pass; the build has no styleguide chunk. Headless Chromium:
+  all 13 scenes at 1920x1080 (mid-entrance and settled), no console errors; every cue rendered
+  through an `OfflineAudioContext` is audible and peaks between 0.24 and 0.76 (no clipping).
+  Local stack: bots pass all 18 steps, then one TV and two 390x844 phones through the audio gate,
+  a real PROSIT! (both tap, verdicts, stage lifting away to the dashboard) and a Duell.
+
+**Deviations from the plan**
+
+- The banner drop animates `clip-path` and the "Zieh!" flash is portalled to `<body>` (the sign
+  clips its own children). Everything else is `transform` and `opacity`.
+- No new copy was needed. The styleguide's labels are inline in `src/styleguide` (a dev tool).
+- Simon removed the tagline and the connection badge from the TV header during the stage (the
+  offline banner across the top remains), so `Dashboard` no longer takes `connection`. His editor
+  also reformatted `src/tv/Dashboard.tsx` (double quotes, semicolons), unlike the rest of the repo.
+
+**Open issues**
+
+- **Nobody has heard the sounds.** Levels were measured, not listened to. The PROSIT! tune is
+  written from memory and may be a note off; it is one array in `prosit()` in `score.ts`.
+- Not tried: a real TV browser (the unlock tap, the volume, whether `clip-path` and the flashes
+  run smoothly on it) and real phones.
+- The PROSIT! flash blinks twice in 0.9 s and the title alternates blue and red. Anyone
+  sensitive to flashing should say so; `prefers-reduced-motion` on the TV's browser stills it.
+- In headless tests a breathing button never counts as "stable", so scripts must force that tap.
+- Late-mounted lines inside a stage (the rating chips of a Trinkspruch) rise in with the
+  stagger delay of their position, up to 0.75 s.
+
+**Manual steps for Simon**
+
+1. `npm run dev`, open `/styleguide`, press every button on the sound board. Say which cues are
+   wrong, too long or too quiet. `MASTER_VOLUME` in `audio.ts` is the one knob.
+2. Deploy and open `/tv` on the real TV: tap "Starta kvällen" and listen for the bell.
+3. Still open from Stage 4: a Duell on two real phones, and a reset with wipe before the party.
+4. The local database was reset during verification (`npx supabase db reset`); the hosted one
+   was not touched.
+
+**Next:** Stage 6 (Achievements, finale, deploy, dress rehearsal). Start a fresh session with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 6.

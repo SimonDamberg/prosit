@@ -11,6 +11,8 @@ import { LoadingScreen } from './ui'
 // The TV app is opened on one screen, so phones should not download it.
 // ClientApp stays eager: the phone path is the one that must be fast from a cold QR scan.
 const TvApp = lazy(() => import('./tv/TvApp'))
+// The styleguide exists in `npm run dev` only: the build drops the route and its chunk.
+const Styleguide = import.meta.env.DEV ? lazy(() => import('./styleguide/StyleguideApp')) : null
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -25,6 +27,16 @@ createRoot(document.getElementById('root')!).render(
             </Suspense>
           }
         />
+        {Styleguide && (
+          <Route
+            path="/styleguide"
+            element={
+              <Suspense fallback={<LoadingScreen label={TV_LOADING} />}>
+                <Styleguide />
+              </Suspense>
+            }
+          />
+        )}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

@@ -57,6 +57,7 @@ src/lib/             Supabase client, typed RPC wrappers, realtime hooks, clock,
 src/ui/              Design-system components shared by both apps.
 src/client/          Phone app, route "/".
 src/tv/              TV app, route "/tv". Lazy-loaded, so phones never download it.
+src/styleguide/      Dev-only route "/styleguide": tokens, sound board, every TV stage from fixtures.
 supabase/migrations/ SQL migrations: schema, RLS, grants and every RPC.
 scripts/             Node scripts: bots.ts drives the backend through src/lib/api.ts.
 ```
@@ -68,6 +69,7 @@ scripts/             Node scripts: bots.ts drives the backend through src/lib/ap
 - Every change in `src/shared/game` comes with tests.
 - Copy lives in `src/shared/content`, not inline in components.
 - `src/client` and `src/tv` never import each other; share through `src/ui`, `src/lib`, `src/shared`.
+  `src/styleguide` may import from both. Nothing imports from it, and the build leaves it out.
 - Only `src/lib` imports Supabase. Components use the hooks in `src/lib/hooks.ts`; RPC errors
   arrive as `PrositError` with copy from `src/shared/content/errors.ts` (add a code there when
   adding a `raise exception`).
@@ -137,3 +139,22 @@ plates, no condensed uppercase sans, no chunky sinking buttons).
   stacks), `toast()` + `<Toaster />` (mount once per app), `ConnectionBadge`, `QrCode`,
   `RollingNumber`, `LoadingScreen`, `Crest` and `Shield`. Most take `size` with a `tv` variant.
 - TV type sizes: `text-tv-sm/md/lg/xl`.
+
+## Sound and motion (Stage 5)
+
+- **Sounds are data.** `src/tv/score.ts` holds every cue as a list of notes (pure, tested);
+  `src/tv/audio.ts` is the synth (brass, tuba, bell, drum, snare, glass, knock) and exports
+  `play(cue)`. A new sound is a new entry in `CUES`, never an oscillator in a component. The cue
+  for the start of an event has the event kind's name.
+- `EventStage` plays the start cue and the verdict (`tusch`, or `strafe` when the result hands
+  out a Strafe). A new event kind with a Strafe needs a case in `hasStrafe` there.
+- **Motion is CSS**, as `--animate-*` in `@theme` in `src/index.css`: `banner-drop`, `sign-drop`,
+  `stage-out` and `flip-in` (the stage arriving, leaving and turning to its result), `prosit` and
+  `slam` (a word that lands), `flash` (on an overlay only), `stamp` (a Strafe), `thud`,
+  `chip-pop`, `urgent` (the last 5 s of a countdown), `breathe`, `from-left` / `from-right`.
+  Utilities: `stagger` (children rise in one by one; an `animate-*` on a child replaces it) and
+  `flourish` (a brass rule under good news).
+- `StageFrame` (`src/tv/EventStage.tsx`) is the stage without the engine; `Modal` takes `band`
+  for event modals on the phone (`LiveModal`, `VerdictModal` use it).
+- `/styleguide` (dev only) shows all of it. `/styleguide?stage=prosit-live` is one stage alone at
+  full size; the scene names are in `src/styleguide/fixtures.ts`. Add a scene for a new stage.

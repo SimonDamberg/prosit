@@ -31,7 +31,7 @@ export function TrinkspruchStage({ event, payload, members, now }: TrinkspruchPr
               <span className="font-display text-[6rem] leading-none font-bold">{TRINKSPRUCH.averageLabel}</span>
               <span className="text-[8rem] leading-none font-black tabular-nums">{TRINKSPRUCH.average(fmtNumber(average))}</span>
             </h2>
-            <p className={bad ? 'text-tv-lg font-black text-strafe' : 'text-tv-lg font-black text-gut'}>
+            <p className={bad ? 'animate-stamp text-tv-lg font-black text-strafe' : 'flourish text-tv-lg font-black text-gut'}>
               {bad ? TRINKSPRUCH.strafe(name) : TRINKSPRUCH.points(name, Math.round(average))}
             </p>
           </>

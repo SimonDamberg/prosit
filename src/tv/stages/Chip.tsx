@@ -8,7 +8,6 @@ export interface StageProps {
   now: number
 }
 
-
 interface ChipProps {
   member: MemberRow
   /** Filled in the member's colour: has answered, or is the one being named. */
@@ -25,7 +24,7 @@ export function Chip({ member, on, order, note }: ChipProps) {
       style={on ? { backgroundColor: member.colour, borderColor: member.colour } : { color: member.colour }}
       className={cx(
         'flex items-center gap-3 rounded-lg border-4 px-6 py-3 font-display text-tv-md leading-none font-bold',
-        on ? 'text-white' : 'border-current bg-card opacity-60',
+        on ? 'animate-chip-pop text-white' : 'border-current bg-card opacity-60',
       )}
     >
       {order !== undefined && <span className="font-body text-tv-sm font-black tabular-nums">{order}.</span>}

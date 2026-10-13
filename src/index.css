@@ -60,6 +60,87 @@
     0% { color: var(--color-koenig); }
     50% { color: var(--color-strafe); }
   }
+
+  /*
+   * Event takeovers. An event arrives in three beats: the Rauten drop like a banner, the sign
+   * falls into place, and its lines rise in one after the other (see .stagger below).
+   */
+  --animate-banner-drop: banner-drop 0.35s ease-out both;
+  --animate-sign-drop: sign-drop 0.55s 0.12s cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  --animate-stage-out: stage-out 0.4s ease-in both;
+  /* A result: the sign turns over. */
+  --animate-flip-in: flip-in 0.5s ease-out both;
+  /* PROSIT! and "Zieh!": the word lands hard, shakes, then flashes blue and red. */
+  --animate-prosit: stomp 0.7s 0.3s ease-out both, alarm 0.6s 1s steps(1, end) infinite;
+  --animate-slam: stomp 0.4s ease-out both, alarm 0.6s 0.4s steps(1, end) infinite;
+  /* One or two blinks of a full-screen colour. Put it on an overlay, never on content. */
+  --animate-flash: flash 0.9s ease-out both;
+  /* A Strafe lands like a rubber stamp and stays a little crooked. */
+  --animate-stamp: stamp 0.45s 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  /* Something just changed: one short swell. */
+  --animate-thud: thud 0.35s ease-out both;
+  --animate-chip-pop: thud 0.4s ease-out;
+  /* The last seconds of a countdown, once a second. */
+  --animate-urgent: urgent 1s ease-out infinite;
+  /* A button that wants to be pressed. */
+  --animate-breathe: breathe 0.7s ease-in-out infinite alternate;
+  /* The duellists walk in from either side. */
+  --animate-from-left: from-left 0.5s 0.5s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+  --animate-from-right: from-right 0.5s 0.5s cubic-bezier(0.2, 1.1, 0.4, 1) both;
+
+  @keyframes banner-drop {
+    from { clip-path: inset(0 0 100% 0); }
+    to { clip-path: inset(0); }
+  }
+  @keyframes sign-drop {
+    from { opacity: 0; transform: translateY(-110%) rotate(-2deg); }
+    30% { opacity: 1; }
+  }
+  @keyframes stage-out {
+    to { opacity: 0; transform: translateY(-8%); }
+  }
+  @keyframes flip-in {
+    from { opacity: 0; transform: perspective(100rem) rotateX(-75deg); }
+  }
+  @keyframes stomp {
+    0% { opacity: 0; transform: scale(3); }
+    45% { opacity: 1; transform: scale(1); }
+    60% { transform: translateX(-1.5%); }
+    75% { transform: translateX(1.5%); }
+    90% { transform: translateX(-0.75%); }
+  }
+  @keyframes flash {
+    0% { opacity: 0.85; }
+    30% { opacity: 0; }
+    50% { opacity: 0.6; }
+    100% { opacity: 0; }
+  }
+  @keyframes stamp {
+    from { opacity: 0; transform: scale(2.6) rotate(-10deg); }
+    to { opacity: 1; transform: rotate(-2deg); }
+  }
+  @keyframes thud {
+    from { transform: scale(1.18); }
+  }
+  @keyframes urgent {
+    from { transform: scale(1.3); }
+  }
+  @keyframes breathe {
+    to { transform: scale(1.04); }
+  }
+  @keyframes from-left {
+    from { opacity: 0; transform: translateX(-40vw); }
+  }
+  @keyframes from-right {
+    from { opacity: 0; transform: translateX(40vw); }
+  }
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(1.5rem); }
+}
+@keyframes draw-line {
+  from { transform: scaleX(0); }
 }
 
 /*
@@ -104,6 +185,31 @@
     height: 2px;
     background: color-mix(in srgb, var(--color-himmel) 45%, transparent);
   }
+}
+
+/* Good news gets a brass rule that draws itself under the line. */
+@utility flourish {
+  &::after {
+    content: "";
+    display: block;
+    height: 0.07em;
+    margin-top: 0.18em;
+    background: var(--color-messing);
+    animation: draw-line 0.6s 1s ease-out both;
+  }
+}
+
+/*
+ * The lines of a takeover rise in one after the other. In the components layer, so an animate-*
+ * utility on a child (a stamp, the PROSIT! stomp) replaces it instead of fighting it.
+ */
+@layer components {
+  .stagger > * { animation: rise-in 0.4s ease-out both; }
+  .stagger > :nth-child(1) { animation-delay: 0.35s; }
+  .stagger > :nth-child(2) { animation-delay: 0.45s; }
+  .stagger > :nth-child(3) { animation-delay: 0.55s; }
+  .stagger > :nth-child(4) { animation-delay: 0.65s; }
+  .stagger > :nth-child(n + 5) { animation-delay: 0.75s; }
 }
 
 @layer base {

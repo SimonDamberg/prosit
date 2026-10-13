@@ -28,7 +28,7 @@ export function SchatzfrageStage({ event, payload, members, now }: SchatzfragePr
           </span>
         </h2>
         {closest === null ? (
-          <p className="text-tv-lg font-black text-strafe">{SCHATZFRAGE.nobody}</p>
+          <p className="animate-stamp text-tv-lg font-black text-strafe">{SCHATZFRAGE.nobody}</p>
         ) : (
           <>
             <ul className="flex flex-wrap justify-center gap-4">
@@ -36,7 +36,7 @@ export function SchatzfrageStage({ event, payload, members, now }: SchatzfragePr
                 <Chip key={m.id} member={m} on={m.id === closest} note={fmtNumber(guesses[m.id])} />
               ))}
             </ul>
-            <p className={loser ? 'text-tv-lg font-black text-strafe' : 'text-tv-lg font-black text-gut'}>
+            <p className={loser ? 'animate-stamp text-tv-lg font-black text-strafe' : 'flourish text-tv-lg font-black text-gut'}>
               {loser ? SCHATZFRAGE.strafe(loser.name) : SCHATZFRAGE.noStrafe}
             </p>
           </>

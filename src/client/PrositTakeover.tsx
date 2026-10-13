@@ -1,7 +1,7 @@
 import type { EventRow, Identity, MemberRow } from '../lib/types'
 import { PROSIT } from '../shared/content/events'
 import { secondsLeft } from '../shared/game/format'
-import { Button } from '../ui'
+import { Button, cx } from '../ui'
 import { LiveModal, VerdictModal } from './EventModal'
 import { useAnswer } from './useAnswer'
 
@@ -43,7 +43,7 @@ export function PrositTakeover({ event, identity, members, now }: TakeoverProps)
         loading={busy}
         disabled={tapped || seconds === 0}
         onClick={() => send({ kind: 'prosit' })}
-        className="h-40 text-6xl"
+        className={cx('h-40 text-6xl', !tapped && !busy && seconds > 0 && 'animate-breathe')}
       >
         {PROSIT.button}
       </Button>

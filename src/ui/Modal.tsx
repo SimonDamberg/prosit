@@ -12,6 +12,8 @@ export interface ModalProps {
   tone?: ModalTone
   /** Backdrop tap, Esc and the close button dismiss. Turn off for flows that need an answer. */
   dismissible?: boolean
+  /** A row of Rauten across the top, and a heavier entrance: for an event, not a form. */
+  band?: boolean
   /** Buttons row at the bottom. */
   actions?: ReactNode
   children?: ReactNode
@@ -28,7 +30,7 @@ const TONE: Record<ModalTone, { box: string; title: string }> = {
  * Pop-up on a native <dialog>. showModal() puts it in the browser top layer, so modals stack in
  * the order they open, Esc closes the topmost one and focus stays inside.
  */
-export function Modal({ open, onClose, title, tone = 'default', dismissible = true, actions, children, className }: ModalProps) {
+export function Modal({ open, onClose, title, tone = 'default', dismissible = true, band = false, actions, children, className }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null)
   const openRef = useRef(open)
 
@@ -58,12 +60,14 @@ export function Modal({ open, onClose, title, tone = 'default', dismissible = tr
       }}
       onClick={onBackdrop}
       className={cx(
-        'm-auto max-h-[calc(100dvh-2rem)] w-[min(34rem,calc(100vw-2rem))] overflow-visible bg-transparent p-0 text-weste open:animate-pop-in',
+        'm-auto max-h-[calc(100dvh-2rem)] w-[min(34rem,calc(100vw-2rem))] overflow-visible bg-transparent p-0 text-weste',
+        band ? 'open:animate-sign-drop' : 'open:animate-pop-in',
         className,
       )}
     >
       {open && (
         <div className={cx('flex max-h-[calc(100dvh-2rem)] flex-col rounded-lg border-2 bg-card shadow-[0_1rem_3rem_rgb(7_48_94/0.35)]', TONE[tone].box)}>
+          {band && <div className="rauten-band shrink-0 rounded-t-md text-xl" />}
           {(title || dismissible) && (
             <div className="flex items-start gap-3 px-5 pt-5">
               <h2 className={cx('min-w-0 flex-1 font-display text-4xl leading-none font-bold', TONE[tone].title)}>

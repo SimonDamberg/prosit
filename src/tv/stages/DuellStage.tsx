@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useResponses, useServerClock } from '../../lib/hooks'
 import { DUELL } from '../../shared/content/events'
 import type { EventPayload } from '../../shared/game/types'
-import { playDraw } from '../audio'
+import { play } from '../audio'
 import { Chip, type StageProps } from './Chip'
 
 type DuellProps = StageProps & { payload: Extract<EventPayload, { kind: 'duell' }> }
@@ -25,7 +26,7 @@ export function DuellStage({ event, payload, members }: DuellProps) {
       () => {
         setDrawn(true)
         // A TV that joins after the draw shows it without the sound.
-        if (wait > 0) playDraw()
+        if (wait > 0) play('draw')
       },
       Math.max(0, wait),
     )
@@ -34,9 +35,13 @@ export function DuellStage({ event, payload, members }: DuellProps) {
 
   const names = (
     <p className="flex flex-wrap items-baseline justify-center gap-x-8 font-display text-[8rem] leading-none font-bold">
-      <span style={{ color: a?.colour }}>{a?.name ?? '?'}</span>
+      <span className="inline-block animate-from-left" style={{ color: a?.colour }}>
+        {a?.name ?? '?'}
+      </span>
       <span className="font-body text-tv-md font-bold text-weste-dim">{DUELL.versus}</span>
-      <span style={{ color: b?.colour }}>{b?.name ?? '?'}</span>
+      <span className="inline-block animate-from-right" style={{ color: b?.colour }}>
+        {b?.name ?? '?'}
+      </span>
     </p>
   )
 
@@ -50,12 +55,12 @@ export function DuellStage({ event, payload, members }: DuellProps) {
         {winner && loser ? (
           <>
             <p className="text-tv-lg font-bold">{DUELL.winner(winner.name, result.reactions[winner.id])}</p>
-            <p className="text-tv-lg font-black text-strafe">{DUELL.strafe(loser.name)}</p>
+            <p className="animate-stamp text-tv-lg font-black text-strafe">{DUELL.strafe(loser.name)}</p>
           </>
         ) : (
           <>
             {names}
-            <p className="text-tv-lg font-black text-strafe">{DUELL.nobody}</p>
+            <p className="animate-stamp text-tv-lg font-black text-strafe">{DUELL.nobody}</p>
           </>
         )}
       </>
@@ -69,7 +74,11 @@ export function DuellStage({ event, payload, members }: DuellProps) {
       <h2 className="font-display text-[9rem] leading-none font-bold text-koenig">{DUELL.title}</h2>
       {names}
       {drawn ? (
-        <p className="animate-alarm font-display text-[14rem] leading-none font-bold">{DUELL.draw}</p>
+        <>
+          <p className="animate-slam font-display text-[14rem] leading-none font-bold">{DUELL.draw}</p>
+          {/* The whole screen blinks, for the duellist who is looking at his glass. In the body: the sign clips its own. */}
+          {createPortal(<div className="pointer-events-none fixed inset-0 z-30 animate-flash bg-strafe" />, document.body)}
+        </>
       ) : (
         <>
           <p className="text-tv-md font-bold">{DUELL.tvReady}</p>

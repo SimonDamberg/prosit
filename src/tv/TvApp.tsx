@@ -47,7 +47,6 @@ export default function TvApp() {
         drinks={drinks.data}
         strafen={strafen.data}
         events={events.data}
-        connection={connection}
       />
     )
   }
