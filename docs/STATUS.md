@@ -185,6 +185,80 @@ Simon's feedback on Stages 1 and 2: the app looked like Rally75, and the club ha
 - Stage 5 is now sound, takeover animations and the styleguide only.
 - Event takeovers (Stage 3) should use `sign` cards over `bg-rauten`, and `Modal tone="accent"`.
 
-**Next:** Stage 3 (Event engine + PROSIT! + Regel). Start a fresh session in `Hobby/prosit` with:
+## Stage 3: event engine + PROSIT! + Regel (done, 2026-10-13)
 
-> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 3.
+**Done**
+
+- `src/shared/game/schedule.ts`: `planEvent` (kind, payload, wait and duration of event N from
+  the seed), `nextAction` (the engine's whole decision as one pure function), `onStage`,
+  `pickFair`. `resolve.ts`: PROSIT! and Regel. 32 new tests (82 in all).
+- `supabase/migrations/20261013000002_engine.sql`: `events.resolved_at`; `spawn_event` takes only
+  the next seq; `respond` closes at `ends_at`; `spawn_event` and `resolve_event` take a null member.
+- `src/lib/useEngine.ts`, mounted in both app shells, and `useResponses`.
+- Phone: "Starta kvällen" while idle, then "Tätare" / "Glesare" for the interval (3 to 30 min),
+  a dev-only "Nästa händelse nu" button, the PROSIT! takeover with its verdict, and a card for
+  the rule in force with "Anmäl regelbrott" (opens the Strafe sheet with the breach picked).
+- TV: the event stage over the dashboard (PROSIT! with countdown and tap order, then the
+  verdict for 12 s; a new rule for 20 s), a strip for the rule in force with its countdown, a
+  strip asking for the start while idle, and a one-tap gate that unlocks the sound.
+- Starter content: twelve rules in `src/shared/content/rules.ts`, event copy in `events.ts`.
+- Verified on the local stack: tests, lint and build pass. Bots pass all 17 steps, including a
+  real night of four events at a 30 s interval where five members and the TV race on every
+  spawn and resolve (one winner each, results equal to `resolve()`). Headless Chromium, one
+  1920x1080 TV and two 390x844 phones: audio gate, start from a phone, interval change seen on
+  the other phone, a Regel (announcement, report from the phone, banner) and a PROSIT! (both
+  tap, early close, right verdict on all three screens, Strafe in the register).
+
+**Deviations from META_PLAN**
+
+- **The TV runs the engine too, as nobody.** Phones sleep in pockets and a sleeping phone runs
+  no timers, so with phones alone the night would stall. The TV has no member token, hence the
+  null member on the two engine RPCs. Any member could already call them and anyone can join,
+  so this opens nothing new. `respond` and everything else still need a member.
+- **A first, plain version of the TV sound** (a square-wave klaxon for PROSIT!, a sine bell for a
+  rule) and its unlock tap came forward from Stage 5: a PROSIT! nobody hears does not work.
+  Stage 5 replaces the sounds in `src/tv/audio.ts`.
+- The wait before an event is counted from the previous event's start with the interval as it is
+  *now*, so a change of interval takes effect at once, also on the event already pending.
+- A Regel does not block: the next event may start while the rule holds. It lasts 10 min, a
+  PROSIT! 60 s, both capped at one interval (which only matters on test intervals).
+- PROSIT! gives the fastest 3 points. The meta-plan names no points for it.
+- "Avsluta kvällen" has no button yet; it belongs with the finale in Stage 6.
+- Built on branch `worktree-stage-3` (the session was not allowed to edit the main checkout),
+  then fast-forwarded into `main` and pushed.
+
+**Notes for Stage 4**
+
+- The checklist for a new event kind is in `CLAUDE.md` (The engine).
+- `planEvent` does not take the member list yet. Duell and Trinkspruch need it: pass the sorted
+  ids in and pick with `pickFair(seed, ids, turn, count)`, where `turn` counts earlier events
+  of that kind (as `rules` does for Regel).
+- `ANSWERED_KINDS` are the kinds that close early when every member has answered. For a Duell
+  "everyone" is not all members; `nextAction` will need the rule per kind.
+- `useEngine` reads answers fresh on every tick while an answered event is live. Do not resolve
+  from `useResponses`: it may lag, and all racers must resolve from the same rows.
+- `PrositTakeover` and `EventStage` pick their event with `onStage`. Follow that pattern.
+
+**Open issues**
+
+- Every row in `members` counts for PROSIT!. A stale row (somebody who joined twice after losing
+  their phone's storage) gets a Strafe for every missed toast and keeps each PROSIT! open for
+  the full minute. A reset with wipe before the party avoids it.
+- The dev trigger exists only in `npm run dev`. On the deployed site an event can only be
+  awaited (3 min is the shortest interval there).
+- Not tried: real phones, a real TV browser (the audio unlock in particular), the hosted database.
+- The headless run used fallback fonts (the worktree's `node_modules` is a symlink, which Vite's
+  dev server will not serve fonts from). Layout was checked, the blackletter was not.
+
+**Manual steps for Simon**
+
+1. Apply the migration to the hosted project: `npx supabase db push`. Until then the deployed
+   app cannot run events (the TV's calls are refused and `resolved_at` is missing).
+2. Then, on the deployed site: "Starta kvällen" on a phone with `/tv` open.
+3. `.env.local` points at the hosted project, and `npm run bots -- --reset` wipes whatever it
+   points at. For the local stack: `BOTS_SUPABASE_URL=http://127.0.0.1:54321
+   BOTS_SUPABASE_KEY=<publishable key from npx supabase status> npm run bots -- --reset`.
+
+**Next:** Stage 4 (Remaining events). Start a fresh session in `Hobby/prosit` with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 4.

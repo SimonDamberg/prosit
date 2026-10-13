@@ -48,6 +48,8 @@ export function createApi(db: SupabaseClient) {
   }
 
   const auth = (who: Identity) => ({ p_member_id: who.memberId, p_token: who.token })
+  /** The engine RPCs also take the TV, which is no member: null. */
+  const engineAuth = (who: Identity | null) => ({ p_member_id: who?.memberId ?? null, p_token: who?.token ?? null })
 
   return {
     // Reads ------------------------------------------------------------------------------
@@ -136,12 +138,12 @@ export function createApi(db: SupabaseClient) {
       await rpc<null>('reset_night', { ...auth(who), p_wipe_members: wipeMembers })
     },
 
-    // Events (driven by the engine from Stage 3) -----------------------------------------
+    // Events (driven by the engine, src/lib/useEngine.ts) --------------------------------
 
-    /** True for the one caller whose insert won the race on `seq`. */
-    spawnEvent(who: Identity, seq: number, payload: EventPayload, endsAt: number): Promise<boolean> {
+    /** True for the one caller whose insert won the race on `seq`. Only the next seq is taken. */
+    spawnEvent(who: Identity | null, seq: number, payload: EventPayload, endsAt: number): Promise<boolean> {
       return rpc<boolean>('spawn_event', {
-        ...auth(who),
+        ...engineAuth(who),
         p_seq: seq,
         p_kind: payload.kind,
         p_payload: payload,
@@ -149,15 +151,15 @@ export function createApi(db: SupabaseClient) {
       })
     },
 
-    /** False when this member had already answered. */
+    /** False when this member had already answered. Refused once the event is past its deadline. */
     respond(who: Identity, eventId: string, payload: EventResponse): Promise<boolean> {
       return rpc<boolean>('respond', { ...auth(who), p_event_id: eventId, p_payload: payload })
     },
 
     /** True for the one caller whose resolution was applied. */
-    resolveEvent(who: Identity, eventId: string, resolution: Resolution): Promise<boolean> {
+    resolveEvent(who: Identity | null, eventId: string, resolution: Resolution): Promise<boolean> {
       return rpc<boolean>('resolve_event', {
-        ...auth(who),
+        ...engineAuth(who),
         p_event_id: eventId,
         p_result: resolution.result,
         p_points: resolution.points,

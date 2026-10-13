@@ -1,14 +1,20 @@
-import { useConnection, useDrinks, useMembers, useNight, useStrafen } from '../lib/hooks'
+import { useConnection, useDrinks, useEvents, useMembers, useNight, useStrafen } from '../lib/hooks'
+import { useEngine } from '../lib/useEngine'
 import { TV_DATA_LOADING } from '../shared/content/tv'
 import { BRAND } from '../shared/content/ui'
 import { ConnectionBadge, Crest, LoadingScreen, Toaster } from '../ui'
+import { AudioGate } from './AudioGate'
 import { Dashboard } from './Dashboard'
 import { useWakeLock } from './useWakeLock'
 
 // Nobody reloads a TV, so every list is also refetched now and then (see LiveHookOptions).
 const POLL = { pollMs: 15_000 }
 
-/** TV app: the live dashboard. Pure output, nothing here is tappable. */
+/**
+ * TV app: the live dashboard and the stage for every event. Pure output: after the one tap that
+ * unlocks the sound, nothing here is tappable. It also runs the engine, as nobody: the TV is the
+ * one device that stays awake all night.
+ */
 export default function TvApp() {
   useWakeLock()
   const connection = useConnection()
@@ -16,7 +22,9 @@ export default function TvApp() {
   const members = useMembers(POLL)
   const drinks = useDrinks(POLL)
   const strafen = useStrafen(POLL)
-  const error = night.error ?? members.error ?? drinks.error ?? strafen.error
+  const events = useEvents(POLL)
+  useEngine(null, { night: night.data, events: events.data, members: members.data })
+  const error = night.error ?? members.error ?? drinks.error ?? strafen.error ?? events.error
 
   let screen
   if (error?.code === 'config') {
@@ -29,7 +37,7 @@ export default function TvApp() {
         </div>
       </main>
     )
-  } else if (!night.data || !members.data || !drinks.data || !strafen.data) {
+  } else if (!night.data || !members.data || !drinks.data || !strafen.data || !events.data) {
     screen = <LoadingScreen label={TV_DATA_LOADING} />
   } else {
     screen = (
@@ -38,6 +46,7 @@ export default function TvApp() {
         members={members.data}
         drinks={drinks.data}
         strafen={strafen.data}
+        events={events.data}
         connection={connection}
       />
     )
@@ -46,7 +55,10 @@ export default function TvApp() {
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <ConnectionBadge status={connection} variant="banner" size="tv" />
-      <div className="min-h-0 flex-1">{screen}</div>
+      <div className="relative min-h-0 flex-1">
+        {screen}
+        <AudioGate />
+      </div>
       {/* Over the tagline in the header, clear of the panels and the totals. */}
       <Toaster size="tv" className="top-9! bottom-auto! left-[27rem]!" />
     </div>

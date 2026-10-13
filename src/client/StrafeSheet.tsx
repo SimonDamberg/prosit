@@ -14,12 +14,16 @@ interface StrafeSheetProps {
   onClose: () => void
   identity: Identity
   members: readonly MemberRow[]
+  /** Reasons offered ahead of the standing ones: breaches of the rules in force. */
+  extraReasons?: readonly string[]
+  /** Reason picked from the start. Read when the sheet mounts, so remount it (key) per opening. */
+  initialReason?: string | null
 }
 
 /** Pick a culprit and a reason. Anyone can hand a Strafe to anyone, themselves included. */
-export function StrafeSheet({ open, onClose, identity, members }: StrafeSheetProps) {
+export function StrafeSheet({ open, onClose, identity, members, extraReasons = [], initialReason = null }: StrafeSheetProps) {
   const [targetId, setTargetId] = useState<string | null>(null)
-  const [preset, setPreset] = useState<string | null>(null)
+  const [preset, setPreset] = useState<string | null>(initialReason)
   const [own, setOwn] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -86,7 +90,7 @@ export function StrafeSheet({ open, onClose, identity, members }: StrafeSheetPro
         <div className="flex flex-col gap-2">
           <p className="label-rule text-base">{STRAFE_SHEET.why}</p>
           <div className="flex flex-wrap gap-2">
-            {STRAFE_REASONS.map((r) => {
+            {[...extraReasons, ...STRAFE_REASONS].map((r) => {
               const on = r === preset && !cleanName(own)
               return (
                 <button

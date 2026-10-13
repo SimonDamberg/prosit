@@ -40,8 +40,9 @@ npm run dev      # dev server: / is the phone, /tv is the TV
 npm test         # vitest run (all src/**/*.test.ts)
 npm run lint
 npm run build    # tsc -b && vite build
-npm run bots -- --reset          # backend check: five fake members through every RPC (WIPES the night)
-npm run bots -- --reset --stay   # then keep them drinking, to watch /tv
+npm run bots -- --reset          # backend check: five fake members through every RPC, then a short
+                                 # night with six racing engines, about 3 min (WIPES the night)
+npm run bots -- --reset --stay   # then keep them drinking and answering events, to watch /tv
 npx supabase start               # local stack (Docker); `npx supabase db reset` reapplies the migrations
 ```
 
@@ -72,7 +73,7 @@ scripts/             Node scripts: bots.ts drives the backend through src/lib/ap
   adding a `raise exception`).
 - Data flows one way: `src/lib/api.ts` (`createApi`, typed reads and one wrapper per RPC) ->
   `src/lib/hooks.ts` (`useNight`, `useMembers`, `useDrinks`, `useEvents`, `useStrafen`, `usePoints`,
-  `useMe`, `useServerClock`) -> components. Rows are mapped in `src/lib/types.ts`: camelCase, and
+  `useResponses`, `useMe`, `useServerClock`) -> components. Rows are mapped in `src/lib/types.ts`: camelCase, and
   timestamps as ms since the epoch in server time.
 - A successful RPC does not update local state. The change comes back through Realtime, the same
   way it reaches every other device.
@@ -85,14 +86,25 @@ scripts/             Node scripts: bots.ts drives the backend through src/lib/ap
 ## The engine (Stage 3, the idea every stage must respect)
 
 There is no server process and no GM, so **every connected client runs the same engine** and the
-database referees.
+database referees. That includes the TV: phones sleep in pockets, the TV never does, so it runs
+the engine as nobody (`spawn_event` and `resolve_event` take a null member; nothing else does).
 
-- `schedule` (pure): event N's kind, payload and start time, from `createRng(nightSeed + N)`.
-- `resolve` (pure): event + responses -> `Resolution` (`src/shared/game/types.ts`).
-- Clients call `spawn_event` / `resolve_event` when due, on **server time** (`src/lib/clock.ts`).
-- Clients race on purpose. `unique(night_id, seq)` and "only while `status = 'live'`" make the
-  first write win and the rest no-ops. This only works while schedule and resolve stay
-  deterministic: the same inputs must give the same output on every device.
+- `planEvent(seed, seq, intervalMin)` in `src/shared/game/schedule.ts` (pure): event N's kind,
+  payload, wait and duration, from `createRng(seed + N)`. Kinds never repeat back to back.
+  Only `ENABLED_KINDS` are drawn; `pickFair` picks members in fair rounds.
+- `nextAction(state, now)` (pure, same file): the whole decision, `spawn`, `resolve` or `wait`.
+  The wait runs from the previous event's `started_at` at the *current* interval. A Regel is
+  non-blocking: the next event may start while the rule holds.
+- `resolve(payload, answers, memberIds)` in `resolve.ts` (pure) -> `Resolution` (`types.ts`).
+- `useEngine` (`src/lib/useEngine.ts`) ticks on **server time** (`src/lib/clock.ts`), reads the
+  answers fresh and calls `spawn_event` / `resolve_event`. Mounted once in each app shell.
+- Clients race on purpose. `unique(seq)`, "only the next seq" and "only while `status = 'live'`"
+  make the first write win and the rest no-ops. `respond` closes at `ends_at`, so the answers are
+  frozen before anyone resolves. This only works while schedule and resolve stay deterministic:
+  the same inputs must give the same output on every device.
+- A new event kind needs: a `planEvent` case and an entry in `ENABLED_KINDS`, a `resolve` case,
+  copy in `src/shared/content/events.ts`, a phone screen, a stage in `src/tv/EventStage.tsx`, and
+  tests for both pure functions.
 - `events.payload`, `events.result` and `responses.payload` hold the `EventPayload`,
   `EventResult` and `EventResponse` unions. They must survive a JSON round trip.
 

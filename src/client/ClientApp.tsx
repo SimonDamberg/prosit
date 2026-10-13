@@ -1,4 +1,5 @@
-import { useConnection, useMe, useMembers, useNight } from '../lib/hooks'
+import { useConnection, useEvents, useMe, useMembers, useNight } from '../lib/hooks'
+import { useEngine } from '../lib/useEngine'
 import { ENDED, PHONE_LOADING } from '../shared/content/phone'
 import { BRAND } from '../shared/content/ui'
 import { ConnectionBadge, Crest, LoadingScreen, Toaster } from '../ui'
@@ -17,12 +18,14 @@ function Notice({ title, text }: { title: string; text: string }) {
   )
 }
 
-/** Phone app: join, then the drink log. */
+/** Phone app: join, then the drink log and the events. Every joined phone also runs the engine. */
 export default function ClientApp() {
   const connection = useConnection()
   const night = useNight()
   const members = useMembers()
+  const events = useEvents()
   const { identity, me } = useMe(members.data)
+  const engine = useEngine(identity, { night: night.data, events: events.data, members: members.data }, Boolean(me))
   const error = night.error ?? members.error
 
   let screen
@@ -37,7 +40,7 @@ export default function ClientApp() {
       ) : (
         <JoinScreen members={members.data} onJoined={members.reload} />
       )
-  } else if (!me) {
+  } else if (!me || !events.data) {
     screen = <LoadingScreen label={PHONE_LOADING.member} />
   } else {
     screen = (
@@ -45,8 +48,10 @@ export default function ClientApp() {
         me={me}
         identity={identity}
         members={members.data}
-        ended={night.data.status === 'ended'}
+        night={night.data}
+        events={events.data}
         connection={connection}
+        onTrigger={engine.triggerNow}
       />
     )
   }

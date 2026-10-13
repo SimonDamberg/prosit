@@ -20,6 +20,7 @@ import {
   type MemberRow,
   type NightRow,
   type PointsRow,
+  type ResponseRow,
   type StrafeRow,
 } from './types'
 
@@ -231,6 +232,19 @@ export function useEvents(options: LiveHookOptions = {}): LiveResult<EventRow[]>
     load: () => getApi().getEvents(),
     tables: ['events'],
     apply: (prev, change) => applySorted(prev, change, toEvent, (e) => e.seq),
+    ...options,
+  })
+}
+
+/**
+ * The answers to one event, oldest first. null: no event, no query. Refetched on every change to
+ * the table rather than merged: answers are few, and a merge would need a filter per event.
+ */
+export function useResponses(eventId: string | null, options: LiveHookOptions = {}): LiveResult<ResponseRow[]> {
+  return useLive({
+    key: eventId === null ? null : `responses:${eventId}`,
+    load: () => getApi().getResponses(eventId!),
+    tables: ['responses'],
     ...options,
   })
 }

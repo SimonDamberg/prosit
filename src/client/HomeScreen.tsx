@@ -1,23 +1,31 @@
 import { useMemo, useState } from 'react'
 import type { ConnectionStatus } from '../lib/connection'
-import { useDrinks, useStrafen } from '../lib/hooks'
-import type { Identity, MemberRow } from '../lib/types'
+import { useDrinks, useServerNow, useStrafen } from '../lib/hooks'
+import type { EventRow, Identity, MemberRow, NightRow } from '../lib/types'
 import { DRINK_ICONS, DRINK_LABELS } from '../shared/content/drinks'
 import { ENDED, HOME, PHONE_LOADING } from '../shared/content/phone'
+import { ruleBreach } from '../shared/content/rules'
 import { BRAND } from '../shared/content/ui'
 import { placeOf, tallyDrinks } from '../shared/game/drinks'
 import { fmtLitres } from '../shared/game/format'
+import { onStage } from '../shared/game/schedule'
 import { DRINK_KINDS } from '../shared/game/types'
 import { Button, ConnectionBadge, LoadingScreen } from '../ui'
 import { DrinkPad } from './DrinkPad'
+import { NightControls } from './NightControls'
+import { PrositTakeover } from './PrositTakeover'
+import { RuleCard } from './RuleCard'
 import { StrafeSheet } from './StrafeSheet'
 
 interface HomeScreenProps {
   me: MemberRow
   identity: Identity
   members: readonly MemberRow[]
-  ended: boolean
+  night: NightRow
+  events: readonly EventRow[]
   connection: ConnectionStatus
+  /** Dev only: open the next event now. */
+  onTrigger: () => Promise<void>
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -29,11 +37,15 @@ function Stat({ label, value }: { label: string; value: string }) {
   )
 }
 
-/** The member's own page: log drinks, see the protocol, hand out Strafen. */
-export function HomeScreen({ me, identity, members, ended, connection }: HomeScreenProps) {
+/** The member's own page: log drinks, answer events, see the protocol, hand out Strafen. */
+export function HomeScreen({ me, identity, members, night, events, connection, onTrigger }: HomeScreenProps) {
   const drinks = useDrinks()
   const strafen = useStrafen()
-  const [strafeOpen, setStrafeOpen] = useState(false)
+  const now = useServerNow(500)
+  // null: closed. `n` remounts the sheet per opening, so it starts from that opening's reason.
+  const [strafe, setStrafe] = useState<{ n: number; reason: string | null } | null>(null)
+  const openStrafe = (reason: string | null) => setStrafe((s) => ({ n: (s?.n ?? 0) + 1, reason }))
+  const ended = night.status === 'ended'
 
   const tallies = useMemo(
     () => (drinks.data ? tallyDrinks(drinks.data, members.map((m) => m.id)) : undefined),
@@ -45,6 +57,11 @@ export function HomeScreen({ me, identity, members, ended, connection }: HomeScr
 
   const myStrafen = strafen.data.filter((s) => s.memberId === me.id).reverse()
   const nameOf = (id: string | null) => members.find((m) => m.id === id)?.name ?? null
+
+  const rules = events.flatMap((e) =>
+    e.status === 'live' && e.payload.kind === 'regel' ? [{ id: e.id, rule: e.payload.rule, endsAt: e.endsAt }] : [],
+  )
+  const prosit = onStage(events, 'prosit', now)
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 pb-24">
@@ -68,8 +85,12 @@ export function HomeScreen({ me, identity, members, ended, connection }: HomeScr
         </section>
       ) : (
         <>
+          {night.status === 'idle' && <NightControls night={night} identity={identity} onTrigger={onTrigger} />}
+          {rules.map((r) => (
+            <RuleCard key={r.id} rule={r.rule} endsAt={r.endsAt} now={now} onReport={() => openStrafe(ruleBreach(r.rule))} />
+          ))}
           <DrinkPad identity={identity} tally={mine} />
-          <Button variant="danger" size="lg" block onClick={() => setStrafeOpen(true)}>
+          <Button variant="danger" size="lg" block onClick={() => openStrafe(null)}>
             {HOME.strafeButton}
           </Button>
         </>
@@ -112,7 +133,20 @@ export function HomeScreen({ me, identity, members, ended, connection }: HomeScr
         )}
       </section>
 
-      <StrafeSheet open={strafeOpen} onClose={() => setStrafeOpen(false)} identity={identity} members={members} />
+      {night.status === 'live' && <NightControls night={night} identity={identity} onTrigger={onTrigger} />}
+
+      {strafe && (
+        <StrafeSheet
+          key={strafe.n}
+          open
+          onClose={() => setStrafe(null)}
+          identity={identity}
+          members={members}
+          extraReasons={rules.map((r) => ruleBreach(r.rule))}
+          initialReason={strafe.reason}
+        />
+      )}
+      {prosit && !ended && <PrositTakeover key={prosit.id} event={prosit} identity={identity} members={members} now={now} />}
     </main>
   )
 }

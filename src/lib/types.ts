@@ -49,6 +49,7 @@ export interface EventRow {
   status: EventStatus
   /** null until resolved. */
   result: EventResult | null
+  resolvedAt: number | null
 }
 
 export interface ResponseRow {
@@ -125,6 +126,7 @@ export function toEvent(r: Raw): EventRow {
     endsAt: ms(r.ends_at),
     status: r.status as EventStatus,
     result: (r.result ?? null) as EventResult | null,
+    resolvedAt: msOrNull(r.resolved_at),
   }
 }
 

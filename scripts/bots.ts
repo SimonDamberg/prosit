@@ -2,7 +2,10 @@
 // WIPES the night and every member (reset_night) at start and end, hence --reset.
 //
 //   npm run bots -- --reset          run the checks and leave an empty night
-//   npm run bots -- --reset --stay   then keep five bots drinking, to watch /tv (Ctrl+C stops)
+//   npm run bots -- --reset --stay   then keep five bots drinking and answering events, to watch
+//                                    /tv (Ctrl+C stops)
+//
+// The engine step runs a real short night (about three minutes): six engines race on every event.
 //
 // Env (from the shell or .env.local): VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY.
 // BOTS_SUPABASE_URL / BOTS_SUPABASE_KEY override them.
@@ -12,12 +15,14 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { createApi } from '../src/lib/api'
 import { createSupabase } from '../src/lib/client'
 import { PrositError } from '../src/lib/errors'
-import type { Identity } from '../src/lib/types'
+import type { EventRow, Identity } from '../src/lib/types'
 import type { ErrorCode } from '../src/shared/content/errors'
 import { STRAFE_REASONS } from '../src/shared/content/strafen'
 import { strafeTally, tallyDrinks } from '../src/shared/game/drinks'
 import { MAX_MEMBERS, MAX_NAME_LENGTH, MEMBER_COLOURS } from '../src/shared/game/members'
+import { resolve } from '../src/shared/game/resolve'
 import { createRng } from '../src/shared/game/rng'
+import { ANSWERED_KINDS, nextAction, planEvent } from '../src/shared/game/schedule'
 import { DRINK_KINDS, type Resolution } from '../src/shared/game/types'
 
 if (!process.argv.includes('--reset')) {
@@ -92,6 +97,55 @@ async function wipe() {
 const NAMES = ['Herr Präsident', 'Graf von Maß', 'Baron Schnaps', 'Doktor Bier', 'Onkel Wasser']
 const bots: Identity[] = []
 const names = new Map<string, string>()
+
+// The engine, as src/lib/useEngine.ts runs it: five phones and the TV (null), all racing. -----
+
+/** How many callers the database let through, per seq and per event id. Must be one each. */
+const wins = { spawn: new Map<number, number>(), resolve: new Map<string, number>() }
+let clockOffset = 0
+
+async function engineTick(who: Identity | null) {
+  const [night, events, members] = await Promise.all([api.getNight(), api.getEvents(), api.getMembers()])
+  const open = events.filter((e) => e.status === 'live' && ANSWERED_KINDS.includes(e.kind))
+  const answers = (await Promise.all(open.map((e) => api.getResponses(e.id)))).flat()
+  const memberIds = members.map((m) => m.id)
+  const action = nextAction({ night, events, memberIds, responses: answers }, Date.now() + clockOffset)
+  if (action.type === 'spawn') {
+    const won = await api.spawnEvent(who, action.plan.seq, action.plan.payload, action.endsAt)
+    if (won) wins.spawn.set(action.plan.seq, (wins.spawn.get(action.plan.seq) ?? 0) + 1)
+  } else if (action.type === 'resolve') {
+    const event = events.find((e) => e.id === action.event.id)!
+    const mine = answers.filter((a) => a.eventId === event.id)
+    const won = await api.resolveEvent(who, event.id, resolve(event.payload, mine, memberIds))
+    if (won) wins.resolve.set(event.id, (wins.resolve.get(event.id) ?? 0) + 1)
+  }
+}
+
+/** Every bot toasts a live PROSIT! after a moment. `skip` names a bot that sleeps through it. */
+const toasted = new Set<string>()
+function toast(event: EventRow, rng: ReturnType<typeof createRng>, skip: Identity | null) {
+  if (event.kind !== 'prosit' || event.status !== 'live' || toasted.has(event.id)) return
+  toasted.add(event.id)
+  for (const bot of bots) {
+    if (bot === skip) continue
+    setTimeout(() => {
+      // Too late is fine: the engines closed it first.
+      api.respond(bot, event.id, { kind: 'prosit' }).catch(() => {})
+    }, rng.float(400, 4000))
+  }
+}
+
+/** Runs the six engines and the toasting bots until `done` says so. */
+async function runNight(done: (events: EventRow[]) => boolean, sleeper: (event: EventRow) => Identity | null) {
+  const rng = createRng(1887)
+  for (;;) {
+    await Promise.all([...bots, null].map(engineTick))
+    const events = await api.getEvents()
+    for (const event of events) toast(event, rng, sleeper(event))
+    if (done(events)) return events
+    await sleep(400)
+  }
+}
 
 // Steps --------------------------------------------------------------------------------------
 
@@ -271,6 +325,9 @@ await step('interval and start of the night', async () => {
   // No event may spawn before the night is live.
   assert.equal(await api.spawnEvent(bots[0], 1, { kind: 'prosit' }, Date.now() + 60_000), false)
 
+  // Not for the TV (no member) either.
+  assert.equal(await api.spawnEvent(null, 1, { kind: 'prosit' }, Date.now() + 60_000), false)
+
   // Two members tap "Starta kvällen" at once: one night, one seed.
   const [a, b] = await Promise.all([api.startNight(bots[0]), api.startNight(bots[1])])
   assert.equal(a.status, 'live')
@@ -283,8 +340,12 @@ await step('interval and start of the night', async () => {
 let eventId = ''
 await step('five engines race: one spawn, one resolve', async () => {
   const endsAt = Date.now() + 60_000
-  const spawned = await Promise.all(bots.map((b) => api.spawnEvent(b, 1, { kind: 'prosit' }, endsAt)))
+  // Only the next seq is taken: nobody can leave a gap in the night.
+  assert.equal(await api.spawnEvent(bots[0], 2, { kind: 'prosit' }, endsAt), false)
+  const spawned = await Promise.all([...bots, null].map((b) => api.spawnEvent(b, 1, { kind: 'prosit' }, endsAt)))
   assert.equal(spawned.filter(Boolean).length, 1, 'exactly one spawn wins')
+  const stolen = { memberId: bots[0].memberId, token: bots[1].token }
+  await expectCode(api.spawnEvent(stolen, 2, { kind: 'prosit' }, endsAt), 'invalid_token')
   // The kind column and the payload must agree.
   const mismatch = await db.rpc('spawn_event', {
     p_member_id: bots[0].memberId,
@@ -321,11 +382,13 @@ await step('five engines race: one spawn, one resolve', async () => {
     ],
   }
   const strafenBefore = (await api.getStrafen()).length
-  const resolved = await Promise.all(bots.map((b) => api.resolveEvent(b, event.id, resolution)))
+  assert.equal(event.resolvedAt, null)
+  const resolved = await Promise.all([...bots, null].map((b) => api.resolveEvent(b, event.id, resolution)))
   assert.equal(resolved.filter(Boolean).length, 1, 'exactly one resolve wins')
 
   events = await api.getEvents()
   assert.equal(events[0].status, 'done')
+  assert.ok(events[0].resolvedAt !== null, 'resolved_at is set')
   assert.deepEqual(events[0].result, resolution.result)
   const points = await api.getPoints()
   assert.equal(points.length, 1)
@@ -342,6 +405,16 @@ await step('five engines race: one spawn, one resolve', async () => {
   await waitFor('event insert and update over realtime', () => seen.events >= 2)
 })
 
+await step('answers close at the deadline, before the event is resolved', async () => {
+  const rule = { kind: 'regel', rule: 'Ingen nämner jobbet' } as const
+  assert.equal(await api.spawnEvent(null, 2, rule, Date.now() - 1000), true)
+  const event = (await api.getEvents())[1]
+  assert.equal(event.status, 'live')
+  await expectCode(api.respond(bots[0], event.id, { kind: 'prosit' }), 'event_closed')
+  assert.equal(await api.resolveEvent(null, event.id, resolve(rule, [], [])), true)
+  assert.deepEqual((await api.getEvents())[1].result, { kind: 'regel' })
+})
+
 await step('the night ends and the log closes', async () => {
   const [a, b] = await Promise.all([api.endNight(bots[0]), api.endNight(bots[1])])
   assert.equal(a.status, 'ended')
@@ -353,8 +426,8 @@ await step('the night ends and the log closes', async () => {
   await expectCode(api.giveStrafe(bots[0], bots[1].memberId, 'För sent'), 'night_ended')
   await expectCode(api.startNight(bots[0]), 'night_ended')
   await expectCode(api.join('Sen gäst', MEMBER_COLOURS[6]), 'night_ended')
-  assert.equal(await api.spawnEvent(bots[0], 2, { kind: 'prosit' }, Date.now() + 60_000), false)
-  assert.equal((await api.getEvents()).length, 1)
+  assert.equal(await api.spawnEvent(bots[0], 3, { kind: 'prosit' }, Date.now() + 60_000), false)
+  assert.equal((await api.getEvents()).length, 2)
   assert.ok(eventId)
 })
 
@@ -370,14 +443,68 @@ await step('reset keeps the members, wipe removes them', async () => {
   assert.deepEqual(await api.getEvents(), [])
   assert.deepEqual(await api.getStrafen(), [])
   assert.deepEqual(await api.getPoints(), [])
+})
 
-  if (!stay) {
-    await api.resetNight(bots[2], true)
-    assert.deepEqual(await api.getMembers(), [])
+const NIGHT_EVENTS = 4
+await step(`six engines run a night of ${NIGHT_EVENTS} events: each spawns once and resolves once`, async () => {
+  clockOffset = (await api.serverNow()) - Date.now()
+  await api.setInterval(bots[0], 0.5)
+  const night = await api.startNight(bots[0])
+  assert.ok(night.seed !== null)
+  const seed = night.seed
+
+  // The last bot sleeps through the first PROSIT!, so that one runs to its deadline.
+  let firstProsit = ''
+  const events = await runNight(
+    (rows) => rows.filter((e) => e.status === 'done').length >= NIGHT_EVENTS,
+    (event) => {
+      if (event.kind === 'prosit') firstProsit ||= event.id
+      return event.id === firstProsit ? bots[4] : null
+    },
+  )
+
+  assert.deepEqual(events.map((e) => e.seq), events.map((_, i) => i + 1), 'seqs run from 1 without a gap')
+  const memberIds = bots.map((b) => b.memberId)
+  const strafen = await api.getStrafen()
+  const points = await api.getPoints()
+  let prev = ''
+  for (const event of events) {
+    assert.equal(wins.spawn.get(event.seq), 1, `seq ${event.seq} spawned once`)
+    assert.notEqual(event.kind, prev, 'no kind twice in a row')
+    prev = event.kind
+    assert.deepEqual(event.payload, planEvent(seed, event.seq, 0.5).payload, `seq ${event.seq} is the scheduled event`)
+    if (event.status !== 'done') continue
+
+    assert.equal(wins.resolve.get(event.id), 1, `seq ${event.seq} resolved once`)
+    assert.ok(event.resolvedAt !== null)
+    const expected = resolve(event.payload, await api.getResponses(event.id), memberIds)
+    assert.deepEqual(event.result, expected.result)
+    const by = (a: { memberId: string }, b: { memberId: string }) => (a.memberId < b.memberId ? -1 : 1)
+    assert.deepEqual(
+      strafen.filter((s) => s.eventId === event.id).map((s) => ({ memberId: s.memberId, reason: s.reason })).sort(by),
+      [...expected.strafen].sort(by),
+    )
+    assert.deepEqual(
+      points.filter((p) => p.eventId === event.id).map((p) => ({ memberId: p.memberId, amount: p.amount, reason: p.reason })),
+      expected.points,
+    )
+    console.log(`      seq ${event.seq} ${event.kind}: ${expected.strafen.length} Strafen`)
   }
+
+  const slept = events.find((e) => e.id === firstProsit)
+  assert.ok(slept?.result?.kind === 'prosit', 'a PROSIT! was played')
+  assert.deepEqual(slept.result.missed, [bots[4].memberId])
+  assert.equal(slept.result.order.length, 4)
+  assert.ok(slept.resolvedAt! >= slept.endsAt, 'a missed PROSIT! runs to its deadline')
+  const quick = events.find((e) => e.kind === 'prosit' && e.status === 'done' && e.id !== firstProsit)
+  if (quick) assert.ok(quick.resolvedAt! < quick.endsAt, 'a PROSIT! everyone answers closes early')
 })
 
 if (!stay) {
+  await step('wipe', async () => {
+    await api.resetNight(bots[2], true)
+    assert.deepEqual(await api.getMembers(), [])
+  })
   await db.removeAllChannels()
   console.log('bots: all steps passed')
   process.exit(0)
@@ -385,7 +512,13 @@ if (!stay) {
 
 // --stay: a slow, seeded evening so the TV has something to show. --------------------------------
 
-console.log('bots: staying. Five members are drinking, open /tv. Ctrl+C to stop (the data stays).')
+console.log('bots: staying. Five members drink and answer events, open /tv. Ctrl+C to stop (the data stays).')
+await api.setInterval(bots[0], 1)
+// The engines keep the night going; now and then somebody sleeps through a PROSIT!.
+void runNight(
+  () => false,
+  (event) => (event.seq % 3 === 0 ? bots[event.seq % bots.length] : null),
+).catch((err) => console.log(`  engines stopped: ${String(err)}`))
 const rng = createRng(1887)
 const KINDS = ['ol', 'ol', 'ol', 'ol', 'ol', 'mass', 'mass', 'schnaps', 'schnaps', 'wasser'] as const
 

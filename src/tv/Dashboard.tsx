@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import type { ConnectionStatus } from '../lib/connection'
 import { useServerNow } from '../lib/hooks'
-import type { DrinkRow, MemberRow, NightRow, StrafeRow } from '../lib/types'
+import type { DrinkRow, EventRow, MemberRow, NightRow, StrafeRow } from '../lib/types'
+import { REGEL, TV_STAGE } from '../shared/content/events'
 import { TV_EMPTY, TV_ENDED, TV_JOIN, TV_STRAFEN, TV_TOTALS } from '../shared/content/tv'
 import { BRAND } from '../shared/content/ui'
 import { strafeTally, sumTallies, tallyDrinks } from '../shared/game/drinks'
-import { fmtLitres } from '../shared/game/format'
+import { fmtClock, fmtLitres } from '../shared/game/format'
 import { ConnectionBadge, Crest, QrCode, RollingNumber, Shield, toast } from '../ui'
+import { EventStage } from './EventStage'
 import { MemberBars } from './MemberBars'
 import { PaceTimeline } from './PaceTimeline'
 import { StrafeRegister } from './StrafeRegister'
@@ -17,6 +19,7 @@ interface DashboardProps {
   members: readonly MemberRow[]
   drinks: readonly DrinkRow[]
   strafen: readonly StrafeRow[]
+  events: readonly EventRow[]
   connection: ConnectionStatus
 }
 
@@ -44,8 +47,19 @@ function useStrafeToasts(strafen: readonly StrafeRow[], members: readonly Member
   }, [strafen, members])
 }
 
-export function Dashboard({ night, members, drinks, strafen, connection }: DashboardProps) {
-  const now = useServerNow(1000)
+/** One line across the dashboard: the rule in force, or a nudge to start the night. */
+function Strip({ label, clock, children }: { label?: string; clock?: string; children: ReactNode }) {
+  return (
+    <div className="sign flex shrink-0 items-baseline gap-6 px-8 py-4">
+      {label && <span className="text-xl font-bold tracking-[0.18em] text-messing-deep uppercase">{label}</span>}
+      <span className="min-w-0 flex-1 truncate font-display text-tv-md leading-none font-bold text-koenig">{children}</span>
+      {clock && <span className="text-tv-md leading-none font-black tabular-nums">{clock}</span>}
+    </div>
+  )
+}
+
+export function Dashboard({ night, members, drinks, strafen, events, connection }: DashboardProps) {
+  const now = useServerNow(500)
   useStrafeToasts(strafen, members)
 
   const tallies = useMemo(
@@ -60,9 +74,11 @@ export function Dashboard({ night, members, drinks, strafen, connection }: Dashb
   const strafeCounts = useMemo(() => strafeTally(strafen), [strafen])
   const ended = night.status === 'ended'
   const joinUrl = window.location.origin
+  const rules = events.filter((e) => e.status === 'live' && e.payload.kind === 'regel')
 
   return (
-    <main className="flex h-full flex-col gap-6 overflow-hidden px-10 pb-8">
+    <main className="relative flex h-full flex-col gap-6 overflow-hidden px-10 pb-8">
+      {!ended && <EventStage events={events} members={members} now={now} />}
       {/* The tablecloth trim: the one loud band on the screen. */}
       <div className="rauten-band -mx-10 shrink-0 text-[2.75rem]" />
       <header className="flex items-center gap-8">
@@ -99,6 +115,12 @@ export function Dashboard({ night, members, drinks, strafen, connection }: Dashb
         </div>
       ) : (
         <>
+          {night.status === 'idle' && <Strip>{TV_STAGE.idle}</Strip>}
+          {rules.map((e) => (
+            <Strip key={e.id} label={REGEL.banner} clock={fmtClock((e.endsAt - now) / 1000)}>
+              {e.payload.kind === 'regel' && e.payload.rule}
+            </Strip>
+          ))}
           <div className="grid min-h-0 flex-1 grid-cols-[3fr_2fr] gap-6">
             <MemberBars members={members} tallies={tallies} strafeCounts={strafeCounts} />
             <div className="grid min-h-0 grid-rows-2 gap-6">
