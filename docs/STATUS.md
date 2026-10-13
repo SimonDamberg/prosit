@@ -71,6 +71,87 @@ Every stage agent appends a section here when it finishes: what was done, deviat
    projects), or decide to reuse the Rally75 project. Have the project URL and the publishable
    key ready.
 
-**Next:** Stage 2 (Backend + drink log + TV dashboard). Start a fresh session in `Hobby/prosit` with:
+## Stage 2: backend + drink log + TV dashboard (done, 2026-10-13)
 
-> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 2.
+**Done**
+
+- `supabase/migrations/20261013000001_schema.sql`: the eight tables from the meta-plan, RLS on,
+  anon may only SELECT (never `member_secrets`), Realtime on everything but `member_secrets`, and
+  all twelve RPCs: `join`, `log_drink`, `undo_drink`, `give_strafe`, `start_night`,
+  `set_interval`, `end_night`, `reset_night`, `spawn_event`, `respond`, `resolve_event`,
+  `server_now`. The three event RPCs are written and bot-tested; no UI calls them yet.
+- `src/lib`: `types.ts` (rows, mappers), `api.ts` (`createApi`), `getApi()`, and in `hooks.ts`
+  the `useLive` pattern from Rally75 plus `useNight`, `useMembers`, `useDrinks`, `useEvents`,
+  `useStrafen`, `usePoints`, `useMe`, `useServerClock`, `useServerNow`.
+- `src/shared/game`: `drinks.ts` (volumes in centilitres, tallies, ranking, the pace series,
+  Strafe tally) and `members.ts` (colours, limits, name cleaning), both tested. `fmtLitres`.
+- `src/shared/content`: `drinks`, `phone`, `tv`, `strafen` (ten preset reasons) and 17 new
+  error codes. A test checks that every `raise exception` in the SQL has copy.
+- Phone: join (name plus one of eight colours, taken ones greyed out), four "+1" buttons with
+  an undo, own stats and placing, "Dela ut en Strafe" sheet, own Strafen, ended-night screen.
+- TV: big join QR while the club is empty, then standings bars (stacked by kind), the pace
+  timeline, the Strafe register with a toast per new Strafe, club totals, clock, and the QR in a
+  corner. Lists are also re-polled every 15 s.
+- `scripts/bots.ts` (`npm run bots -- --reset`, add `--stay` to keep them drinking).
+- Verified against the local stack: bots pass all 14 steps (including five callers racing on
+  `spawn_event` and `resolve_event`, one winner each; anon writes refused; Realtime delivery),
+  50 unit tests, lint and build pass. Headless Chromium: a 390x844 phone joins, logs, undoes and
+  gives a Strafe while a 1920x1080 `/tv` follows live; a wiped member lands back on the join
+  screen; the "Keine Verbindung" banner shows when the TV goes offline and clears on return.
+
+**Deviations from META_PLAN**
+
+- Nothing has touched a hosted Supabase project: it did not exist yet. See the manual steps.
+- Drinks and Strafen are allowed while the night is `idle`, not only `live`, so the log works
+  before Stage 3 ships "Starta kvällen". Only `ended` closes it. The TV timeline starts at
+  `night.started_at`, or a minute before the first drink if the night was never started.
+- `night.interval_min` is `numeric(4,1)`, 0.5 to 60, so Stage 3 can run its 30 s bot test.
+- `events.seq` is unique on its own (the night is a singleton, there is no `night_id`).
+- `responses` has its own `id` (the Realtime merge keys on it), next to `unique(event_id, member_id)`.
+- `members` allows 8, not 5, so a member who loses their phone's storage can join again under a
+  new name. Names are unique (case-insensitive, max 16) and so are colours.
+- `reset_night` takes `wipe_members` (default false). With it, every phone is signed out.
+- `spawn_event`, `respond` and `resolve_event` return a boolean: true for the caller that won.
+- `Identity` moved to `src/lib/types.ts` so Node scripts can import it without DOM types.
+
+**Notes for Stage 3**
+
+- `spawn_event` only checks "night is live" and `unique(seq)`. It does not check that `seq` is
+  the next one or that no other event is live; the engine decides that. Add a migration if the
+  database should referee it too.
+- `resolve_event` drops awards for members that no longer exist instead of failing.
+- Two Strafen from one resolution share the same `at` (transaction time), so their order in
+  `useStrafen` is not defined between them.
+- Realtime checks an insert against the row as it is when the change is processed. A drink that
+  is logged and undone within a few ms never produces an INSERT, only a DELETE for an id nobody
+  has. `applyChange` ignores that, but do not count INSERTs as a log.
+- `useEvents` exists; there is no `useResponses` yet (`api.getResponses(eventId)` is there).
+- There is no "Starta kvällen" button and no interval control on the phone yet.
+- Litres count Öl 50 cl, Maß 100 cl, Schnaps 4 cl. Wasser (33 cl) is tallied on its own.
+
+**Open issues**
+
+- A member who clears their browser data cannot reclaim their old row; they join again as a new
+  member and the old row stays on the TV until a reset with wipe.
+- Nobody can call `reset_night` without a member token, and nobody can join an ended night. On
+  the local stack `npx supabase db reset` gets out of that; the hosted project needs a phone
+  that is still joined (Stage 6 puts the reset button there).
+- The main chunk is just over 500 kB (supabase-js), which Vite warns about. Harmless.
+- The CSS `uppercase` on buttons turns "Maß" into "MASS" (correct German, but Stage 5 may
+  want the ß back).
+- npm still uses the plain-HTTP registry on this machine.
+
+**Manual steps for Simon**
+
+1. Create the Supabase project for Prosit!. Then, in this repo:
+   `npx supabase login`, `npx supabase link --project-ref <ref>`, `npx supabase db push`.
+2. Put the project URL and publishable key in `.env.local` (it currently points at the local
+   stack) and in the Vercel project env (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`), then redeploy.
+3. Check it: `npm run bots -- --reset` against the hosted project (it wipes the night), then
+   open `/tv` on one screen and `/` on a phone.
+4. The Rally75 local stack was stopped to free the ports (its data is kept). The Prosit! one is
+   running: `npx supabase stop` here, `npx supabase start` in `../natcasino` to switch back.
+
+**Next:** Stage 3 (Event engine + PROSIT! + Regel). Start a fresh session in `Hobby/prosit` with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 3.

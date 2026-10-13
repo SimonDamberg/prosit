@@ -39,6 +39,9 @@ npm run dev      # dev server: / is the phone, /tv is the TV
 npm test         # vitest run (all src/**/*.test.ts)
 npm run lint
 npm run build    # tsc -b && vite build
+npm run bots -- --reset          # backend check: five fake members through every RPC (WIPES the night)
+npm run bots -- --reset --stay   # then keep them drinking, to watch /tv
+npx supabase start               # local stack (Docker); `npx supabase db reset` reapplies the migrations
 ```
 
 Env: copy `.env.example` to `.env.local`. Only `VITE_`-prefixed vars reach the browser.
@@ -52,8 +55,8 @@ src/lib/             Supabase client, typed RPC wrappers, realtime hooks, clock,
 src/ui/              Design-system components shared by both apps.
 src/client/          Phone app, route "/".
 src/tv/              TV app, route "/tv". Lazy-loaded, so phones never download it.
-supabase/migrations/ SQL migrations. (Stage 2)
-scripts/             Node scripts, e.g. bots.ts. (Stage 2)
+supabase/migrations/ SQL migrations: schema, RLS, grants and every RPC.
+scripts/             Node scripts: bots.ts drives the backend through src/lib/api.ts.
 ```
 
 - `src/shared/` never imports React, the DOM, or Supabase. It must run in Node (tests).
@@ -66,6 +69,14 @@ scripts/             Node scripts, e.g. bots.ts. (Stage 2)
 - Only `src/lib` imports Supabase. Components use the hooks in `src/lib/hooks.ts`; RPC errors
   arrive as `PrositError` with copy from `src/shared/content/errors.ts` (add a code there when
   adding a `raise exception`).
+- Data flows one way: `src/lib/api.ts` (`createApi`, typed reads and one wrapper per RPC) ->
+  `src/lib/hooks.ts` (`useNight`, `useMembers`, `useDrinks`, `useEvents`, `useStrafen`, `usePoints`,
+  `useMe`, `useServerClock`) -> components. Rows are mapped in `src/lib/types.ts`: camelCase, and
+  timestamps as ms since the epoch in server time.
+- A successful RPC does not update local state. The change comes back through Realtime, the same
+  way it reaches every other device.
+- Limits that exist in both SQL and TypeScript (name length, member cap, reason length, drink
+  kinds) are mirrored by hand: `src/shared/game/members.ts` and the migration. Change both.
 - Migrations are append-only once pushed: never edit an applied file, add a new one.
 - Tests are colocated as `*.test.ts`. They are type-checked via `tsconfig.node.json` (Node
   types available), while `tsconfig.app.json` covers app code with DOM types only.

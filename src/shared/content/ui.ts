@@ -27,10 +27,3 @@ export const UI_LABELS = {
   close: 'Stäng',
   loading: 'Laddar',
 } as const
-
-/** Stage 1 placeholders. Stage 2 replaces both screens. */
-export const PLACEHOLDER = {
-  phone: 'Herr Präsident hälsar välkommen. Protokollet öppnar inom kort.',
-  tv: 'Der Fernseher ist bereit. Skanna koden för att ansluta.',
-  joinQr: 'QR-kod till telefonappen',
-} as const

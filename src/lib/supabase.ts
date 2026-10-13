@@ -1,9 +1,11 @@
-// Browser singleton. The only place the app reads the Supabase env vars.
+// Browser singletons. The only place the app reads the Supabase env vars.
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { createApi, type Api } from './api'
 import { createSupabase } from './client'
 import { PrositError } from './errors'
 
 let client: SupabaseClient | null = null
+let api: Api | null = null
 
 /** Throws PrositError('config') if the VITE_ env vars are missing. */
 export function getSupabase(): SupabaseClient {
@@ -14,4 +16,9 @@ export function getSupabase(): SupabaseClient {
     client = createSupabase(url, key)
   }
   return client
+}
+
+export function getApi(): Api {
+  api ??= createApi(getSupabase())
+  return api
 }

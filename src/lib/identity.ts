@@ -1,10 +1,9 @@
 // This device's member identity ({memberId, token}) in localStorage.
 // Exposed as an external store so hooks re-render when it changes (also across tabs).
 
-export interface Identity {
-  memberId: string
-  token: string
-}
+import type { Identity } from './types'
+
+export type { Identity }
 
 const IDENTITY_KEY = 'prosit.identity'
 

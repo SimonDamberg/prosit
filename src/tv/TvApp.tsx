@@ -1,21 +1,51 @@
-import { BRAND, PLACEHOLDER } from '../shared/content/ui'
-import { QrCode, Toaster } from '../ui'
+import { useConnection, useDrinks, useMembers, useNight, useStrafen } from '../lib/hooks'
+import { TV_DATA_LOADING } from '../shared/content/tv'
+import { BRAND } from '../shared/content/ui'
+import { ConnectionBadge, LoadingScreen, Toaster } from '../ui'
+import { Dashboard } from './Dashboard'
 import { useWakeLock } from './useWakeLock'
 
-/** TV app. Stage 1 placeholder: Stage 2 builds the dashboard here. */
+// Nobody reloads a TV, so every list is also refetched now and then (see LiveHookOptions).
+const POLL = { pollMs: 15_000 }
+
+/** TV app: the live dashboard. Pure output, nothing here is tappable. */
 export default function TvApp() {
   useWakeLock()
-  return (
-    <main className="flex h-dvh items-center justify-center gap-16 px-16">
-      <div className="flex flex-col gap-4">
-        <p className="text-tv-sm font-bold tracking-[0.2em] text-ink-dim uppercase">
-          {BRAND.club} · {BRAND.tagline}
-        </p>
+  const connection = useConnection()
+  const night = useNight(POLL)
+  const members = useMembers(POLL)
+  const drinks = useDrinks(POLL)
+  const strafen = useStrafen(POLL)
+  const error = night.error ?? members.error ?? drinks.error ?? strafen.error
+
+  let screen
+  if (error?.code === 'config') {
+    screen = (
+      <main className="flex h-full flex-col items-center justify-center gap-6 px-16 text-center">
         <h1 className="font-display text-[10rem] leading-none font-black text-plate uppercase">{BRAND.name}</h1>
-        <p className="text-tv-sm text-ink-dim">{PLACEHOLDER.tv}</p>
-      </div>
-      <QrCode value={window.location.origin} label={PLACEHOLDER.joinQr} className="size-80 shrink-0 rounded-2xl" />
-      <Toaster size="tv" />
-    </main>
+        <p className="text-tv-md text-ink-dim">{error.message}</p>
+      </main>
+    )
+  } else if (!night.data || !members.data || !drinks.data || !strafen.data) {
+    screen = <LoadingScreen label={TV_DATA_LOADING} />
+  } else {
+    screen = (
+      <Dashboard
+        night={night.data}
+        members={members.data}
+        drinks={drinks.data}
+        strafen={strafen.data}
+        connection={connection}
+      />
+    )
+  }
+
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <ConnectionBadge status={connection} variant="banner" size="tv" />
+      <div className="min-h-0 flex-1">{screen}</div>
+      {/* Over the tagline in the header, clear of the panels and the totals. */}
+      <Toaster size="tv" className="top-9! bottom-auto! left-[27rem]!" />
+    </div>
   )
 }
