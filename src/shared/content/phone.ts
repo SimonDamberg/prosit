@@ -19,6 +19,7 @@ export const HOME = {
   undone: 'Struket ur protokollet. Det har aldrig hänt.',
   statsTitle: 'Ditt protokoll',
   litres: 'liter',
+  litresShort: 'L',
   litresLabel: 'Ädla drycker',
   place: 'Placering',
   placeOf: (place: number, of: number) => `${place} av ${of}`,

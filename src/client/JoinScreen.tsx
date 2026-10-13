@@ -6,7 +6,7 @@ import { ERROR_MESSAGES } from '../shared/content/errors'
 import { JOIN } from '../shared/content/phone'
 import { BRAND } from '../shared/content/ui'
 import { cleanName, firstFreeColour, MAX_NAME_LENGTH, MEMBER_COLOURS, nameProblem } from '../shared/game/members'
-import { Button, cx, toast } from '../ui'
+import { Button, Crest, cx, toast } from '../ui'
 import { reportError } from './report'
 
 export function JoinScreen({ members, onJoined }: { members: readonly MemberRow[]; onJoined: () => void }) {
@@ -38,17 +38,18 @@ export function JoinScreen({ members, onJoined }: { members: readonly MemberRow[
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-6 py-8">
-      <header className="text-center">
-        <p className="text-sm font-bold tracking-[0.2em] text-ink-dim uppercase">{BRAND.club}</p>
-        <h1 className="font-display text-7xl leading-none font-black text-plate uppercase">{BRAND.name}</h1>
-        <p className="mt-3 text-sm font-bold tracking-[0.2em] text-sleaze uppercase">{JOIN.kicker}</p>
-        <p className="mt-2 text-base text-ink-dim">{JOIN.intro}</p>
+    <main className="flex min-h-dvh items-center justify-center bg-rauten p-4">
+      <div className="sign flex w-full max-w-md flex-col gap-6 px-5 py-7">
+      <header className="flex flex-col items-center text-center">
+        <Crest />
+        <h1 className="mt-4 font-display text-7xl leading-none font-bold text-koenig">{BRAND.name}</h1>
+        <p className="mt-3 text-lg font-bold">{JOIN.kicker}</p>
+        <p className="mt-1 text-base text-weste-dim">{JOIN.intro}</p>
       </header>
 
       <form onSubmit={submit} className="flex flex-col gap-5">
         <label className="flex flex-col gap-2">
-          <span className="text-sm font-bold tracking-[0.15em] text-ink-dim uppercase">{JOIN.nameLabel}</span>
+          <span className="label-rule text-base">{JOIN.nameLabel}</span>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -57,12 +58,12 @@ export function JoinScreen({ members, onJoined }: { members: readonly MemberRow[
             autoComplete="given-name"
             autoCapitalize="words"
             enterKeyHint="done"
-            className="min-h-14 rounded-xl bg-night-deep px-4 text-2xl font-bold text-ink ring-2 ring-tote-hi/60 outline-none ring-inset placeholder:text-void focus:ring-plate"
+            className="min-h-14 rounded-md bg-card px-4 text-2xl font-bold text-weste ring-2 ring-koenig/40 outline-none ring-inset placeholder:text-weste-dim/50 focus:ring-koenig"
           />
         </label>
 
         <fieldset className="flex flex-col gap-2">
-          <legend className="mb-2 text-sm font-bold tracking-[0.15em] text-ink-dim uppercase">{JOIN.colourLabel}</legend>
+          <legend className="label-rule mb-2 w-full text-base">{JOIN.colourLabel}</legend>
           <div className="grid grid-cols-4 gap-3">
             {MEMBER_COLOURS.map((c) => {
               const isTaken = taken.includes(c)
@@ -76,21 +77,22 @@ export function JoinScreen({ members, onJoined }: { members: readonly MemberRow[
                   onClick={() => setPicked(c)}
                   style={{ backgroundColor: c }}
                   className={cx(
-                    'h-14 rounded-xl transition-transform',
-                    c === colour && 'scale-105 ring-4 ring-ink ring-offset-2 ring-offset-night',
+                    'h-14 rounded-md transition-transform',
+                    c === colour && 'scale-105 ring-4 ring-weste ring-offset-2 ring-offset-card',
                     isTaken && 'opacity-15',
                   )}
                 />
               )
             })}
           </div>
-          {!colour && <p className="text-sm font-semibold text-drift">{JOIN.full}</p>}
+          {!colour && <p className="text-sm font-semibold text-strafe">{JOIN.full}</p>}
         </fieldset>
 
         <Button type="submit" size="lg" block loading={busy} disabled={!colour}>
           {JOIN.submit}
         </Button>
       </form>
+      </div>
     </main>
   )
 }

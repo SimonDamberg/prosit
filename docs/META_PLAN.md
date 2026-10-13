@@ -23,6 +23,8 @@ between those sessions.
 | Control | No GM, no password. Any member can start the night, change the event interval, end the night. |
 | Devices | TV at `/tv` (landscape, readable across a room, nothing to tap after the start). Phones at `/` (portrait). |
 | Language | Swedish with over-the-top fake German (Prosit, Maß, Strafe, Herr Präsident). All user-facing text, including errors. No em dashes. |
+| Club | **Svarta Västarna**, motto "Natura Statera". |
+| Look | Traditional Bavarian white and blue, light theme. Must not resemble Rally75. |
 | Humour | The club as a pompous, arch-conservative Herrenklubb: mock-solemn statutes, inflated titles, outrage at modernity (oat milk, alcohol-free beer, e-scooters), "så har vi alltid gjort". Bavarian beer-hall kitsch. No Nazi-themed content. |
 | Alarm | The TV announces events with sound and visuals. Phones only respond (no push notifications). |
 | Audio | TV only, synthesized with Web Audio (no audio files). One tap on the TV ("Starta kvällen") unlocks it. |
@@ -155,10 +157,10 @@ manual steps for Simon), commit, stop.
 - Content pools in `shared/content/` (rules, votes, questions), in the house humour.
 - Simon: optional inside-joke material for the pools.
 
-### Stage 5: Oktoberfest design system + sound
-- Use the `frontend-design` skill. Tokens for Bavarian blue and white lozenges, beer amber,
-  pretzel brown, foam cream; a blackletter display face; TV type sizes.
-- Reskin phone and TV; event takeover animations; Web Audio brass sting and bell on the TV.
+### Stage 5: Sound + takeover animations
+- The design system (white and blue, Rauten, blackletter, crest) was done after Stage 2; see
+  `docs/STATUS.md` and the Design system section of `CLAUDE.md`. Build on it, do not replace it.
+- Event takeover animations; Web Audio brass sting and bell on the TV.
 - Dev-only `/styleguide` route.
 
 ### Stage 6: Achievements, finale, deploy, dress rehearsal

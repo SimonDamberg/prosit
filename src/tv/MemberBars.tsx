@@ -30,10 +30,10 @@ export function MemberBars({ members, tallies, strafeCounts }: MemberBarsProps) 
           return (
             <li key={member.id} className="flex min-h-0 flex-col gap-1.5">
               <div className="flex items-baseline gap-5">
-                <span className="min-w-0 truncate font-display text-tv-md leading-none font-black uppercase" style={{ color: member.colour }}>
+                <span className="min-w-0 truncate font-display text-tv-md leading-none font-bold" style={{ color: member.colour }}>
                   {member.name}
                 </span>
-                <span className="flex gap-4 text-xl font-bold whitespace-nowrap text-ink-dim tabular-nums">
+                <span className="flex gap-4 text-xl font-bold whitespace-nowrap text-weste-dim tabular-nums">
                   {DRINK_KINDS.map((kind) => (
                     <span key={kind} aria-label={`${DRINK_LABELS[kind]}: ${t.counts[kind]}`}>
                       <span aria-hidden>{DRINK_ICONS[kind]}</span> {t.counts[kind]}
@@ -41,21 +41,21 @@ export function MemberBars({ members, tallies, strafeCounts }: MemberBarsProps) 
                   ))}
                 </span>
                 {strafen > 0 && (
-                  <span className="rounded-full bg-drift px-4 py-1 text-xl font-black whitespace-nowrap text-white tabular-nums">
+                  <span className="rounded-md bg-strafe px-4 py-1 text-xl font-black whitespace-nowrap text-white tabular-nums">
                     {strafen} ⚖
                   </span>
                 )}
-                <span className="ml-auto font-display text-tv-md leading-none font-black whitespace-nowrap tabular-nums">
+                <span className="ml-auto text-tv-md leading-none font-black whitespace-nowrap text-koenig tabular-nums">
                   {t.cl > 0 ? (
                     <>
-                      {fmtLitres(t.cl, 2)} <span className="text-tv-sm text-ink-dim">{TV_BARS.litres}</span>
+                      {fmtLitres(t.cl, 2)} <span className="text-tv-sm text-weste-dim">{TV_BARS.litres}</span>
                     </>
                   ) : (
-                    <span className="text-tv-sm text-ink-dim uppercase">{TV_BARS.noDrinks}</span>
+                    <span className="text-tv-sm font-bold text-weste-dim">{TV_BARS.noDrinks}</span>
                   )}
                 </span>
               </div>
-              <div className="flex h-7 overflow-hidden rounded-full bg-night-deep/70">
+              <div className="flex h-7 overflow-hidden rounded-sm bg-paper-deep">
                 {NOBLE_KINDS.map((kind) => (
                   <div
                     key={kind}

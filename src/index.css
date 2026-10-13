@@ -1,36 +1,34 @@
 @import "tailwindcss";
 
 /*
- * Design tokens. Components in src/ui use these, never raw Tailwind colours. Dark only.
- *
- * Placeholder palette: the token names are inherited from the Rally75 components this project
- * started from, and the values are a first Bavarian guess. Stage 5 owns the real design system and
- * may rename tokens (rename in src/ui at the same time).
+ * Design tokens. Components use these, never raw Tailwind colours. Light only: white is the
+ * ground, Bavarian blue is the voice, black (the vests) is the ink.
  */
 @theme {
-  /* Surfaces: page, deepest page, lit top of the page gradient, panel, panel highlight. */
-  --color-night: #0a1f44;
-  --color-night-deep: #06122b;
-  --color-night-glow: #16408a;
-  --color-tote: #14407f;
-  --color-tote-hi: #5aa2f0;
-  /* Beer amber: primary buttons, big numbers, titles. */
-  --color-plate: #f5b324;
-  --color-plate-shade: #a06a00;
-  /* Accent for events and takeovers. */
-  --color-sleaze: #f3ead2;
-  --color-sleaze-shade: #9c8f6a;
-  --color-sleaze-ink: #2a1a08;
-  /* Good news and bad news (a Strafe, an error). */
-  --color-cash: #7ddc8a;
-  --color-drift: #e5482f;
-  --color-drift-shade: #8c2413;
-  --color-void: #50607f;
-  --color-ink: #f6f3e8;
-  --color-ink-dim: #a9b8d6;
+  /* Surfaces: page, inset wells (bar tracks, stat tiles), cards and modals. */
+  --color-paper: #fbf9f3;
+  --color-paper-deep: #efeadc;
+  --color-card: #ffffff;
+  /* Flag sky blue: lozenges, fills, rules. Too light for small text. */
+  --color-himmel: #0098d4;
+  /* Royal blue: headings, primary buttons, borders, big numbers. */
+  --color-koenig: #0b4a8f;
+  --color-koenig-deep: #07305e;
+  /* Vest black: body text, and its quieter companion. */
+  --color-weste: #17171b;
+  --color-weste-dim: #5b6270;
+  /* Brass, used sparingly: the crest, the motto. The deep one is for text. */
+  --color-messing: #c9a24a;
+  --color-messing-deep: #7d5a10;
+  /* Bad news (a Strafe, an error, no connection) and good news. */
+  --color-strafe: #c2261c;
+  --color-strafe-deep: #8a160f;
+  --color-gut: #2f7d4f;
 
-  --font-display: "Big Shoulders Display Variable", "Arial Narrow", "Helvetica Neue", sans-serif;
-  --font-body: "Archivo Variable", "Helvetica Neue", Arial, sans-serif;
+  /* Blackletter for the brand, headings and names. Always mixed case, never uppercase. */
+  --font-display: "Grenze Gotisch Variable", "Old English Text MT", Georgia, serif;
+  /* Slab for body text and every number. */
+  --font-body: "Bitter Variable", Rockwell, Georgia, serif;
 
   /* TV sizes, readable across a room. */
   --text-tv-sm: 1.75rem;
@@ -58,21 +56,65 @@
   }
 }
 
+/*
+ * Rauten: the white and sky-blue lozenge field of the Bavarian flag. Use it as a band or a
+ * backdrop, and put content on a card over it, never straight on it. The fill is --color-himmel,
+ * repeated here because a data URI cannot read a custom property.
+ */
+@utility bg-rauten {
+  background-color: var(--color-card);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='68'%3E%3Cpath d='M20 0 40 34 20 68 0 34z' fill='%230098d4'/%3E%3C/svg%3E");
+  background-size: 2.5rem 4.25rem;
+  background-position: center top;
+}
+
+/* One full row of small Rauten as a trim. Its height is 1em: size it with a text size. */
+@utility rauten-band {
+  @apply bg-rauten;
+  height: 1em;
+  background-size: 0.588em 1em;
+  border-bottom: 0.09em solid var(--color-koenig);
+  box-sizing: content-box;
+}
+
+/* Enamel sign: a white card with a royal-blue edge and a sky-blue hairline inside it. */
+@utility sign {
+  background-color: var(--color-card);
+  border: 2px solid var(--color-koenig);
+  border-radius: 0.5rem;
+  box-shadow: inset 0 0 0 3px var(--color-card), inset 0 0 0 4px var(--color-himmel);
+}
+
+/* Section label: the text, then a rule that runs to the edge. */
+@utility label-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.75em;
+  font-weight: 700;
+  color: var(--color-koenig);
+  &::after {
+    content: "";
+    flex: 1;
+    height: 2px;
+    background: color-mix(in srgb, var(--color-himmel) 45%, transparent);
+  }
+}
+
 @layer base {
   html {
-    background: var(--color-night-deep);
+    background: var(--color-paper);
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
   }
   body {
     min-height: 100dvh;
-    background: radial-gradient(120% 70% at 50% 0%, var(--color-night-glow) 0%, var(--color-night) 55%, var(--color-night-deep) 100%) fixed;
-    color: var(--color-ink);
+    background: var(--color-paper);
+    color: var(--color-weste);
     font-family: var(--font-body);
     -webkit-font-smoothing: antialiased;
   }
   :focus-visible {
-    outline: 3px solid var(--color-tote-hi);
+    outline: 3px solid var(--color-himmel);
     outline-offset: 2px;
   }
   html:has(dialog[open]) {
@@ -80,7 +122,7 @@
   }
   /* Longhand: ::backdrop cannot read a custom property on older Safari. */
   dialog::backdrop {
-    background: rgb(6 18 43 / 0.86);
+    background: rgb(7 48 94 / 0.6);
   }
 }
 

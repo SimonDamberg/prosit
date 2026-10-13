@@ -39,24 +39,24 @@ export function DrinkPad({ identity, tally }: { identity: Identity; tally: Tally
 
   return (
     <section className="flex flex-col gap-3">
-      <h2 className="text-sm font-bold tracking-[0.15em] text-ink-dim uppercase">{HOME.drinksTitle}</h2>
+      <h2 className="label-rule text-base">{HOME.drinksTitle}</h2>
       <div className="grid grid-cols-2 gap-3">
         {DRINK_KINDS.map((kind) => (
           <Button
             key={kind}
-            variant={kind === 'wasser' ? 'sleaze' : 'primary'}
+            variant={kind === 'wasser' ? 'quiet' : 'primary'}
             disabled={pending !== null}
             onClick={() => log(kind)}
-            className="h-32 flex-col rounded-2xl px-2"
+            className="h-32 flex-col px-2"
           >
             <span className="flex items-center gap-2 text-4xl">
               <span aria-hidden>{DRINK_ICONS[kind]}</span>
               {DRINK_LABELS[kind]}
             </span>
-            <span className="font-body text-sm font-semibold tracking-normal normal-case opacity-70">
+            <span className="font-body text-sm font-semibold opacity-80">
               {DRINK_HINTS[kind]}
             </span>
-            <span className="font-body text-base font-bold tracking-normal tabular-nums">
+            <span className="font-body text-lg font-black tabular-nums">
               {tally.counts[kind]}
             </span>
           </Button>

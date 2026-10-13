@@ -6,16 +6,16 @@ export const MAX_NAME_LENGTH = 16
 export const MAX_MEMBERS = 8
 export const MAX_REASON_LENGTH = 80
 
-/** Lowercase hex, as the members.colour check requires. Chosen to tell apart on the TV. */
+/** Lowercase hex, as the members.colour check requires. Chosen to tell apart on the TV, and dark enough to read as text on white. */
 export const MEMBER_COLOURS = [
-  '#f5b324',
-  '#5aa2f0',
-  '#e5482f',
-  '#7ddc8a',
-  '#c58af9',
-  '#ff8fb1',
-  '#3fd0c9',
-  '#f6f3e8',
+  '#0077b6',
+  '#b3541e',
+  '#2f7d4f',
+  '#8e2a8b',
+  '#17171b',
+  '#b0234f',
+  '#8a6d00',
+  '#5b4bc4',
 ] as const
 
 /** Trims and collapses whitespace, like private.clean_name in SQL. */

@@ -1,7 +1,7 @@
 import { useConnection, useDrinks, useMembers, useNight, useStrafen } from '../lib/hooks'
 import { TV_DATA_LOADING } from '../shared/content/tv'
 import { BRAND } from '../shared/content/ui'
-import { ConnectionBadge, LoadingScreen, Toaster } from '../ui'
+import { ConnectionBadge, Crest, LoadingScreen, Toaster } from '../ui'
 import { Dashboard } from './Dashboard'
 import { useWakeLock } from './useWakeLock'
 
@@ -21,9 +21,12 @@ export default function TvApp() {
   let screen
   if (error?.code === 'config') {
     screen = (
-      <main className="flex h-full flex-col items-center justify-center gap-6 px-16 text-center">
-        <h1 className="font-display text-[10rem] leading-none font-black text-plate uppercase">{BRAND.name}</h1>
-        <p className="text-tv-md text-ink-dim">{error.message}</p>
+      <main className="flex h-full items-center justify-center bg-rauten p-16">
+        <div className="sign flex max-w-5xl flex-col items-center gap-8 px-16 py-12 text-center">
+          <Crest size="tv" />
+          <h1 className="font-display text-[10rem] leading-none font-bold text-koenig">{BRAND.name}</h1>
+          <p className="text-tv-md text-weste-dim">{error.message}</p>
+        </div>
       </main>
     )
   } else if (!night.data || !members.data || !drinks.data || !strafen.data) {

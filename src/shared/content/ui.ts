@@ -4,7 +4,8 @@
 
 export const BRAND = {
   name: 'Prosit!',
-  club: 'Herrenklubben',
+  club: 'Svarta Västarna',
+  motto: 'Natura Statera',
   tagline: 'Officiellt Oktoberfestprotokoll',
 } as const
 

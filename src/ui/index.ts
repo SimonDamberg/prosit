@@ -1,6 +1,7 @@
 // Design system shared by the phone and the TV. Tokens live in src/index.css.
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from './Button'
 export { ConnectionBadge, type ConnectionBadgeProps } from './ConnectionBadge'
+export { Crest, Shield, type CrestSize } from './Crest'
 export { cx } from './cx'
 export { LoadingScreen } from './LoadingScreen'
 export { Modal, type ModalProps, type ModalTone } from './Modal'

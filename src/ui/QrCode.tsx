@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { encode } from 'uqr'
 import { cx } from './cx'
 
-/** Crisp SVG QR code. Modules use currentColor on a light ground; keep the contrast high. */
+/** Crisp SVG QR code. Black modules on a white ground; keep the contrast high. */
 export function QrCode({ value, label, className }: { value: string; label: string; className?: string }) {
   const { size, path } = useMemo(() => {
     const qr = encode(value, { ecc: 'M', border: 2 })
@@ -21,7 +21,7 @@ export function QrCode({ value, label, className }: { value: string; label: stri
       aria-label={label}
       viewBox={`0 0 ${size} ${size}`}
       shapeRendering="crispEdges"
-      className={cx('block bg-ink text-night', className)}
+      className={cx('block bg-card text-weste', className)}
     >
       <path d={path} fill="currentColor" />
     </svg>

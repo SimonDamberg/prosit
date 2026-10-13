@@ -13,15 +13,15 @@ export function StrafeRegister({ members, strafen }: { members: readonly MemberR
   return (
     <Panel title={TV_STRAFEN.title}>
       {latest.length === 0 ? (
-        <p className="my-auto text-center text-tv-sm text-ink-dim">{TV_STRAFEN.none}</p>
+        <p className="my-auto text-center text-tv-sm text-weste-dim">{TV_STRAFEN.none}</p>
       ) : (
         <ul className="flex min-h-0 flex-1 flex-col justify-around gap-2 overflow-hidden">
           {latest.map((s) => {
             const m = member(s.memberId)
             return (
-              <li key={s.id} className="flex animate-toast-in items-baseline gap-4 border-l-8 border-drift pl-4">
-                <span className="text-xl font-bold text-ink-dim tabular-nums">{fmtTime(s.at)}</span>
-                <span className="shrink-0 font-display text-tv-sm leading-none font-black uppercase" style={{ color: m?.colour }}>
+              <li key={s.id} className="flex animate-toast-in items-baseline gap-4 border-l-8 border-strafe pl-4">
+                <span className="text-xl font-bold text-weste-dim tabular-nums">{fmtTime(s.at)}</span>
+                <span className="shrink-0 font-display text-tv-md leading-none font-bold" style={{ color: m?.colour }}>
                   {m?.name ?? '?'}
                 </span>
                 <span className="min-w-0 truncate text-tv-sm leading-tight">{s.reason}</span>

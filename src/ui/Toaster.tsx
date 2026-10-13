@@ -3,9 +3,9 @@ import { cx } from './cx'
 import { toastStore, type ToastTone } from './toast'
 
 const TONE: Record<ToastTone, string> = {
-  info: 'border-tote-hi text-ink',
-  win: 'border-cash text-cash',
-  error: 'border-drift text-ink',
+  info: 'border-himmel text-weste',
+  win: 'border-gut text-weste',
+  error: 'border-strafe text-weste',
 }
 
 export type ToasterSize = 'md' | 'tv'
@@ -17,8 +17,8 @@ const STACK: Record<ToasterSize, string> = {
 }
 
 const TOAST: Record<ToasterSize, string> = {
-  md: 'rounded-lg border-l-4 px-4 py-2.5 text-sm',
-  tv: 'rounded-xl border-l-8 px-7 py-4 text-tv-sm',
+  md: 'rounded-md border-l-4 px-4 py-2.5 text-sm',
+  tv: 'rounded-md border-l-8 px-7 py-4 text-tv-sm',
 }
 
 const EMPTY: readonly never[] = []
@@ -40,7 +40,7 @@ export function Toaster({ size = 'md', className }: { size?: ToasterSize; classN
     >
       {toasts.map((t) => {
         const look = cx(
-          'max-w-full animate-toast-in bg-night-deep/95 text-left font-semibold shadow-[0_0.5rem_1.5rem_rgb(0_0_0/0.5)] ring-1 ring-white/10',
+          'max-w-full animate-toast-in bg-card text-left font-semibold shadow-[0_0.4rem_1.2rem_rgb(7_48_94/0.25)] ring-1 ring-koenig/20',
           TOAST[size],
           TONE[t.tone],
         )

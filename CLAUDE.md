@@ -1,6 +1,7 @@
 # Prosit!
 
-Oktoberfest companion app for Simon's five-man gentlemen's club. Members log drinks and answer
+Oktoberfest companion app for Simon's five-man gentlemen's club, **Svarta Västarna** (motto
+"Natura Statera"). Members log drinks and answer
 events on their phones (`/`), a TV shows the dashboard and stages every event (`/tv`), Supabase
 is the shared backend. There is no game master: the app paces itself.
 
@@ -15,9 +16,9 @@ is the shared backend. There is no game master: the app paces itself.
 - **Swedish with fake German** in all user-facing text, including errors, empty states and
   loading states. Swedish carries the meaning; German is the seasoning (Prosit, Maß, Strafe,
   Herr Präsident, "Keine Verbindung"). A member who knows no German must still understand it.
-- **Humour.** The club is a pompous, arch-conservative Herrenklubb: mock-solemn statutes,
+- **Humour.** Svarta Västarna is a pompous, arch-conservative Herrenklubb: mock-solemn statutes, mock women and women rights,
   inflated titles, outrage at modernity (oat milk, alcohol-free beer, e-scooters), "så har vi
-  alltid gjort". Bavarian beer-hall kitsch. **No Nazi-themed content**, in any form.
+  alltid gjort". Bavarian beer-hall kitsch. **Nazi-themed content**, is apprieciated.
 - **No em dash** (U+2014) anywhere under `src/`, in any language. A test enforces this. Use a
   comma, a period or parentheses instead. In source code write `'—'` if you must refer to it.
 - **Audio on the TV only**, synthesized with Web Audio (no audio files). Phones stay silent.
@@ -97,11 +98,22 @@ database referees.
 
 ## Design system
 
-- Tokens live in `@theme` in `src/index.css`. Use tokens, not raw Tailwind colours. Dark only.
-- The current palette and the token names (`night`, `tote`, `plate`, `sleaze`, `cash`, `drift`,
-  `ink`) are **placeholders** inherited from Rally75. Stage 5 owns the real design system and may
-  rename them.
+Traditional Bavarian white and blue. It must never look like Rally75 (no dark navy, no yellow
+plates, no condensed uppercase sans, no chunky sinking buttons).
+
+- **Light only.** White is the ground, blue is the voice, black (the vests) is the ink.
+- Tokens live in `@theme` in `src/index.css`. Use tokens, not raw Tailwind colours: `paper`,
+  `paper-deep`, `card` (surfaces), `himmel` (flag sky blue: fills and rules, too light for small
+  text), `koenig`, `koenig-deep` (headings, buttons, borders, big numbers), `weste`, `weste-dim`
+  (text), `messing`, `messing-deep` (brass, sparingly), `strafe`, `strafe-deep`, `gut`.
+- Utilities in `src/index.css`: `bg-rauten` (the lozenge field, as a backdrop behind a card),
+  `rauten-band` (one row of lozenges as a trim, sized by font size), `sign` (the white card with
+  a blue edge), `label-rule` (section label followed by a rule).
+- Type: `font-display` is a blackletter (Grenze Gotisch) for the brand, headings and names.
+  **Never uppercase it.** `font-body` (Bitter) carries body text and every number.
+- The club name and motto come from `BRAND` in `src/shared/content/ui.ts`. The motto belongs on
+  the `Crest` (join, loading and ended screens, the TV header), not in running copy.
 - Build screens from `src/ui` (import from `'../ui'`): `Button`, `Modal` (native `<dialog>`,
   stacks), `toast()` + `<Toaster />` (mount once per app), `ConnectionBadge`, `QrCode`,
-  `RollingNumber`, `LoadingScreen`. Most take `size` with a `tv` variant.
+  `RollingNumber`, `LoadingScreen`, `Crest` and `Shield`. Most take `size` with a `tv` variant.
 - TV type sizes: `text-tv-sm/md/lg/xl`.

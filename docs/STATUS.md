@@ -152,6 +152,39 @@ Every stage agent appends a section here when it finishes: what was done, deviat
 4. The Rally75 local stack was stopped to free the ports (its data is kept). The Prosit! one is
    running: `npx supabase stop` here, `npx supabase start` in `../natcasino` to switch back.
 
+## Design pass: white and blue, Svarta Västarna (done, 2026-10-13)
+
+Simon's feedback on Stages 1 and 2: the app looked like Rally75, and the club has a name.
+
+**Done**
+
+- The club is **Svarta Västarna**, motto **"Natura Statera"** (`BRAND.club`, `BRAND.motto`).
+- New design system, pulled forward from Stage 5: light theme, Bavarian white and blue, black
+  as the ink. Every Rally75 token, both Rally75 fonts and the sinking buttons are gone. Tokens,
+  utilities and type rules are listed in `CLAUDE.md`.
+- New `Crest` and `Shield` in `src/ui` (lozenge shield with a black vest, motto on a brass
+  ribbon). The motto shows on the join, loading and ended screens and in the TV header.
+- `Button` variants are now `primary | quiet | ghost | danger`; `Modal` tones are
+  `default | accent | danger`.
+- `MEMBER_COLOURS` replaced with eight hues that read as text on white (no migration needed:
+  the SQL checks only the hex format). Members who joined with an old colour keep it until a
+  reset with wipe.
+- Display type is mixed case, which closes the "Maß becomes MASS" issue. The litre unit is a
+  capital L, because a lowercase l read as a one next to the digits.
+- Verified on the local stack: tests, lint and build pass, bots pass all 14 steps, and headless
+  Chromium screenshots of join, home and the Strafe sheet at 390x844 and of the empty and live
+  dashboard at 1920x1080.
+
+**Not checked**
+
+- The ended screens, the offline banner and the config-error screen were restyled but not
+  screenshotted. Nothing was tried on a real phone or TV.
+
+**For later stages**
+
+- Stage 5 is now sound, takeover animations and the styleguide only.
+- Event takeovers (Stage 3) should use `sign` cards over `bg-rauten`, and `Modal tone="accent"`.
+
 **Next:** Stage 3 (Event engine + PROSIT! + Regel). Start a fresh session in `Hobby/prosit` with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 3.

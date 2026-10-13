@@ -1,16 +1,18 @@
 import { useConnection, useMe, useMembers, useNight } from '../lib/hooks'
 import { ENDED, PHONE_LOADING } from '../shared/content/phone'
 import { BRAND } from '../shared/content/ui'
-import { ConnectionBadge, LoadingScreen, Toaster } from '../ui'
+import { ConnectionBadge, Crest, LoadingScreen, Toaster } from '../ui'
 import { HomeScreen } from './HomeScreen'
 import { JoinScreen } from './JoinScreen'
 
 function Notice({ title, text }: { title: string; text: string }) {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 px-6 text-center">
-      <p className="text-sm font-bold tracking-[0.2em] text-ink-dim uppercase">{BRAND.club}</p>
-      <h1 className="font-display text-6xl leading-none font-black text-plate uppercase">{title}</h1>
-      <p className="text-lg text-ink-dim">{text}</p>
+    <main className="flex min-h-dvh items-center justify-center bg-rauten p-4">
+      <div className="sign flex w-full max-w-md flex-col items-center gap-5 px-6 py-8 text-center">
+        <Crest />
+        <h1 className="font-display text-6xl leading-none font-bold text-koenig">{title}</h1>
+        <p className="text-lg text-weste-dim">{text}</p>
+      </div>
     </main>
   )
 }

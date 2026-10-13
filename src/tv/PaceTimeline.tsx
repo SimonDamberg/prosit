@@ -48,7 +48,7 @@ export function PaceTimeline({ night, members, drinks, now }: PaceTimelineProps)
   if (!series || firstAt === null) {
     return (
       <Panel title={TV_PACE.title}>
-        <p className="my-auto text-center text-tv-sm text-ink-dim">{TV_PACE.empty}</p>
+        <p className="my-auto text-center text-tv-sm text-weste-dim">{TV_PACE.empty}</p>
       </Panel>
     )
   }
@@ -65,7 +65,7 @@ export function PaceTimeline({ night, members, drinks, now }: PaceTimelineProps)
       <div className="flex min-h-0 flex-1 flex-col gap-2">
         <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={TV_PACE.title} className="min-h-0 w-full flex-1">
           {[0.25, 0.5, 0.75, 1].map((f) => (
-            <line key={f} x1={0} x2={W} y1={y(maxCl * f)} y2={y(maxCl * f)} stroke="var(--color-void)" strokeWidth={1} strokeDasharray="4 8" vectorEffect="non-scaling-stroke" />
+            <line key={f} x1={0} x2={W} y1={y(maxCl * f)} y2={y(maxCl * f)} stroke="var(--color-koenig)" strokeOpacity={0.3} strokeWidth={1} strokeDasharray="4 8" vectorEffect="non-scaling-stroke" />
           ))}
           {members.map((m) => (
             <polyline
@@ -83,7 +83,7 @@ export function PaceTimeline({ night, members, drinks, now }: PaceTimelineProps)
             />
           ))}
         </svg>
-        <div className="flex justify-between text-xl font-bold text-ink-dim tabular-nums">
+        <div className="flex justify-between text-xl font-bold text-weste-dim tabular-nums">
           <span>
             {TV_PACE.start} {fmtTime(start)}
           </span>

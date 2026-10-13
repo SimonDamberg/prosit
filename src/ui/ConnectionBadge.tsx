@@ -3,9 +3,9 @@ import { CONNECTION_LABELS, OFFLINE_BANNER } from '../shared/content/ui'
 import { cx } from './cx'
 
 const DOT: Record<ConnectionStatus, string> = {
-  connecting: 'bg-ink-dim animate-pulse-live',
-  online: 'bg-cash shadow-[0_0_0.5em_var(--color-cash)]',
-  offline: 'bg-drift animate-pulse-live',
+  connecting: 'bg-weste-dim animate-pulse-live',
+  online: 'bg-gut',
+  offline: 'bg-strafe animate-pulse-live',
 }
 
 export interface ConnectionBadgeProps {
@@ -25,7 +25,7 @@ export function ConnectionBadge({ status, variant = 'pill', size = 'md', classNa
       <div
         role="alert"
         className={cx(
-          'flex items-center justify-center gap-3 bg-drift text-center font-bold text-white',
+          'flex items-center justify-center gap-3 bg-strafe text-center font-bold text-white',
           tv ? 'px-6 py-4 text-tv-sm' : 'px-4 py-2.5 text-base',
           className,
         )}
@@ -39,9 +39,9 @@ export function ConnectionBadge({ status, variant = 'pill', size = 'md', classNa
     <span
       role="status"
       className={cx(
-        'inline-flex items-center gap-2 rounded-full bg-night-deep/70 font-bold tracking-[0.12em] whitespace-nowrap uppercase ring-1 ring-white/15 ring-inset',
-        tv ? 'px-5 py-2 text-xl' : 'px-3 py-1 text-xs',
-        status === 'offline' ? 'text-drift' : 'text-ink',
+        'inline-flex items-center gap-2 rounded-md bg-card font-bold whitespace-nowrap ring-1 ring-koenig/30 ring-inset',
+        tv ? 'px-5 py-2 text-xl' : 'px-2.5 py-1 text-xs',
+        status === 'offline' ? 'text-strafe' : 'text-weste',
         className,
       )}
     >

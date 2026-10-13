@@ -6,7 +6,7 @@ import { TV_EMPTY, TV_ENDED, TV_JOIN, TV_STRAFEN, TV_TOTALS } from '../shared/co
 import { BRAND } from '../shared/content/ui'
 import { strafeTally, sumTallies, tallyDrinks } from '../shared/game/drinks'
 import { fmtLitres } from '../shared/game/format'
-import { ConnectionBadge, QrCode, RollingNumber, toast } from '../ui'
+import { ConnectionBadge, Crest, QrCode, RollingNumber, Shield, toast } from '../ui'
 import { MemberBars } from './MemberBars'
 import { PaceTimeline } from './PaceTimeline'
 import { StrafeRegister } from './StrafeRegister'
@@ -22,9 +22,9 @@ interface DashboardProps {
 
 function Total({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-1 items-baseline justify-center gap-4 rounded-3xl bg-night-deep/60 px-6 py-4">
-      <span className="font-display text-tv-lg leading-none font-black text-plate tabular-nums">{children}</span>
-      <span className="text-xl font-bold tracking-[0.12em] text-ink-dim uppercase">{label}</span>
+    <div className="sign flex flex-1 items-baseline justify-center gap-4 px-6 py-4">
+      <span className="text-tv-lg leading-none font-black text-koenig tabular-nums">{children}</span>
+      <span className="text-2xl font-bold text-weste-dim">{label}</span>
     </div>
   )
 }
@@ -62,33 +62,40 @@ export function Dashboard({ night, members, drinks, strafen, connection }: Dashb
   const joinUrl = window.location.origin
 
   return (
-    <main className="flex h-full flex-col gap-6 overflow-hidden p-10">
+    <main className="flex h-full flex-col gap-6 overflow-hidden px-10 pb-8">
+      {/* The tablecloth trim: the one loud band on the screen. */}
+      <div className="rauten-band -mx-10 shrink-0 text-[2.75rem]" />
       <header className="flex items-center gap-8">
-        <div className="flex min-w-0 flex-1 items-baseline gap-8">
-          <h1 className="font-display text-tv-xl leading-none font-black text-plate uppercase">{BRAND.name}</h1>
-          <p className="truncate text-tv-sm font-bold tracking-[0.15em] text-ink-dim uppercase">
-            {ended ? TV_ENDED : `${BRAND.club} · ${BRAND.tagline}`}
+        <Shield className="h-32 w-auto shrink-0" />
+        <h1 className="font-display text-tv-xl leading-none font-bold text-koenig">{BRAND.name}</h1>
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <p className="truncate font-display text-tv-md leading-none font-bold">{ended ? TV_ENDED : BRAND.club}</p>
+          <p className="truncate text-xl font-bold text-weste-dim">
+            <span className="tracking-[0.18em] text-messing-deep uppercase">{BRAND.motto}</span> · {BRAND.tagline}
           </p>
         </div>
         <ConnectionBadge status={connection} size="tv" />
-        <p className="font-display text-tv-lg leading-none font-black tabular-nums">{fmtTime(now)}</p>
+        <p className="text-tv-lg leading-none font-black text-koenig tabular-nums">{fmtTime(now)}</p>
         {members.length > 0 && !ended && (
           <div className="flex items-center gap-4">
-            <p className="font-display text-tv-sm leading-none font-black text-ink-dim uppercase">{TV_JOIN.corner}</p>
-            <QrCode value={joinUrl} label={TV_JOIN.qrLabel} className="size-28 shrink-0 rounded-xl" />
+            <p className="font-display text-tv-md leading-none font-bold text-weste-dim">{TV_JOIN.corner}</p>
+            <QrCode value={joinUrl} label={TV_JOIN.qrLabel} className="size-28 shrink-0 border-2 border-koenig" />
           </div>
         )}
       </header>
 
       {members.length === 0 ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center gap-20">
-          <div className="flex max-w-3xl flex-col gap-6">
-            <p className="text-tv-sm font-bold tracking-[0.15em] text-sleaze uppercase">{TV_EMPTY.title}</p>
-            <h2 className="font-display text-tv-xl leading-none font-black uppercase">{TV_JOIN.title}</h2>
-            <p className="text-tv-md text-ink-dim">{TV_EMPTY.text}</p>
-            <p className="text-tv-sm text-ink-dim">{TV_JOIN.text}</p>
+        <div className="flex min-h-0 flex-1 items-center justify-center gap-16">
+          <Crest size="tv" className="shrink-0" />
+          <div className="flex max-w-2xl flex-col gap-6">
+            <p className="text-tv-sm font-bold text-strafe">{TV_EMPTY.title}</p>
+            <h2 className="font-display text-tv-xl leading-none font-bold text-koenig">{TV_JOIN.title}</h2>
+            <p className="text-tv-md text-weste">{TV_EMPTY.text}</p>
+            <p className="text-tv-sm text-weste-dim">{TV_JOIN.text}</p>
           </div>
-          <QrCode value={joinUrl} label={TV_JOIN.qrLabel} className="size-[30rem] shrink-0 rounded-3xl" />
+          <div className="sign shrink-0 p-5">
+            <QrCode value={joinUrl} label={TV_JOIN.qrLabel} className="size-[26rem]" />
+          </div>
         </div>
       ) : (
         <>

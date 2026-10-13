@@ -14,7 +14,8 @@ export const TV_EMPTY = {
 
 export const TV_BARS = {
   title: 'Ställningen',
-  litres: 'l',
+  // Capital: a lowercase l reads as a one next to the digits.
+  litres: 'L',
   noDrinks: 'Torrlagd',
 } as const
 

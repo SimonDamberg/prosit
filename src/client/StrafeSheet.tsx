@@ -7,7 +7,7 @@ import { cleanName, MAX_REASON_LENGTH } from '../shared/game/members'
 import { Button, cx, Modal, toast } from '../ui'
 import { reportError } from './report'
 
-const CHIP = 'min-h-11 rounded-full px-4 text-base font-bold ring-2 ring-inset transition-colors'
+const CHIP = 'min-h-11 rounded-md px-4 text-base font-bold ring-2 ring-inset transition-colors'
 
 interface StrafeSheetProps {
   open: boolean
@@ -66,7 +66,7 @@ export function StrafeSheet({ open, onClose, identity, members }: StrafeSheetPro
     >
       <div className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-bold tracking-[0.15em] text-ink-dim uppercase">{STRAFE_SHEET.who}</p>
+          <p className="label-rule text-base">{STRAFE_SHEET.who}</p>
           <div className="flex flex-wrap gap-2">
             {members.map((m) => (
               <button
@@ -74,8 +74,8 @@ export function StrafeSheet({ open, onClose, identity, members }: StrafeSheetPro
                 type="button"
                 aria-pressed={m.id === targetId}
                 onClick={() => setTargetId(m.id)}
-                style={m.id === targetId ? { backgroundColor: m.colour, color: 'var(--color-night-deep)' } : { color: m.colour }}
-                className={cx(CHIP, m.id === targetId ? 'ring-ink' : 'bg-night-deep ring-current')}
+                style={m.id === targetId ? { backgroundColor: m.colour, color: 'var(--color-card)' } : { color: m.colour }}
+                className={cx(CHIP, m.id === targetId ? 'ring-weste' : 'bg-card ring-current')}
               >
                 {m.name}
               </button>
@@ -84,7 +84,7 @@ export function StrafeSheet({ open, onClose, identity, members }: StrafeSheetPro
         </div>
 
         <div className="flex flex-col gap-2">
-          <p className="text-sm font-bold tracking-[0.15em] text-ink-dim uppercase">{STRAFE_SHEET.why}</p>
+          <p className="label-rule text-base">{STRAFE_SHEET.why}</p>
           <div className="flex flex-wrap gap-2">
             {STRAFE_REASONS.map((r) => {
               const on = r === preset && !cleanName(own)
@@ -97,7 +97,7 @@ export function StrafeSheet({ open, onClose, identity, members }: StrafeSheetPro
                     setPreset(r)
                     setOwn('')
                   }}
-                  className={cx(CHIP, on ? 'bg-drift text-white ring-drift' : 'bg-night-deep text-ink ring-tote-hi/60')}
+                  className={cx(CHIP, on ? 'bg-strafe text-white ring-strafe' : 'bg-card text-weste ring-koenig/40')}
                 >
                   {r}
                 </button>
@@ -105,14 +105,14 @@ export function StrafeSheet({ open, onClose, identity, members }: StrafeSheetPro
             })}
           </div>
           <label className="mt-1 flex flex-col gap-2">
-            <span className="text-sm font-bold tracking-[0.15em] text-ink-dim uppercase">{STRAFE_SHEET.ownReason}</span>
+            <span className="label-rule text-base">{STRAFE_SHEET.ownReason}</span>
             <input
               value={own}
               onChange={(e) => setOwn(e.target.value)}
               maxLength={MAX_REASON_LENGTH}
               placeholder={STRAFE_SHEET.ownPlaceholder}
               enterKeyHint="done"
-              className="min-h-12 rounded-xl bg-night-deep px-4 text-lg font-semibold text-ink ring-2 ring-tote-hi/60 outline-none ring-inset placeholder:text-void focus:ring-drift"
+              className="min-h-12 rounded-md bg-card px-4 text-lg font-semibold text-weste ring-2 ring-koenig/40 outline-none ring-inset placeholder:text-weste-dim/50 focus:ring-strafe"
             />
           </label>
         </div>
