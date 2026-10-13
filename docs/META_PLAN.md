@@ -16,16 +16,19 @@ between those sessions.
 
 ## Decisions (settled with Simon, treat as fixed)
 
-| Topic | Decision |
-|---|---|
-| Concept | All-night companion: drink log, TV dashboard, random events. No scheduled tournament. |
-| Players | Five club members. Join by QR on the TV, name plus colour. `{memberId, token}` in localStorage. |
-| Control | No GM, no password. Any member can start the night, change the event interval, end the night. |
-| Devices | TV at `/tv` (landscape, readable across a room, nothing to tap after the start). Phones at `/` (portrait). |
+| Topic    | Decision                                                                                                                           |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Concept  | All-night companion: drink log, TV dashboard, random events. No scheduled tournament.                                              |
+| Players  | Five club members. Join by QR on the TV, name plus colour. `{memberId, token}` in localStorage.                                    |
+| Control  | No GM, no password. Any member can start the night, change the event interval, end the night.                                      |
+| Devices  | TV at `/tv` (landscape, readable across a room, nothing to tap after the start). Phones at `/` (portrait).                         |
 | Language | Swedish with over-the-top fake German (Prosit, Maß, Strafe, Herr Präsident). All user-facing text, including errors. No em dashes. |
-| Club | **Svarta Västarna**, motto "Natura Statera". |
-| Look | Traditional Bavarian white and blue, light theme. Must not resemble Rally75. |
-| Humour | The club as a pompous, arch-conservative Herrenklubb: mock-solemn statutes, inflated titles, outrage at modernity (oat milk, alcohol-free beer, e-scooters), "så har vi alltid gjort". Bavarian beer-hall kitsch. No Nazi-themed content. |
+| Club     | **Svarta Västarna**, motto "Natura Statera".                                                                                       |
+| Look     | Traditional Bavarian white and blue, light theme. Must not resemble Rally75.                                                       |
+| Humour   | The club as a pompous, arch-conservative Herrenklubb: mock-solemn statutes, mock women and women rights,                           |
+
+inflated titles, outrage at modernity (oat milk, alcohol-free beer, e-scooters), "så har vi
+alltid gjort". Bavarian beer-hall kitsch. **Nazi-themed jokes** is always apprieciated. |
 | Alarm | The TV announces events with sound and visuals. Phones only respond (no push notifications). |
 | Audio | TV only, synthesized with Web Audio (no audio files). One tap on the TV ("Starta kvällen") unlocks it. |
 | Events | PROSIT!, Duell, Regel, Abstimmung, Schätzfrage, Trinkspruch (see below). Every 8-15 min, adjustable. |
@@ -40,14 +43,14 @@ between those sessions.
 
 ## Events
 
-| Event | What happens |
-|---|---|
-| **PROSIT!** | TV blares and flashes. Everyone toasts, then taps "Prost!". The last one, and anyone who misses 60 s, gets a Strafe. |
-| **Duell** | Two random members. Reaction game on their phones (wait for "ZIEH!", tap first; an early tap loses). The other three pick a winner for points. The loser gets a Strafe. |
-| **Regel** | A rule from a pool holds for 10 min. Anyone can hand out a Strafe for a breach. |
-| **Abstimmung** | "Vem i klubben ...?" vote. The winner holds the title on the TV until the next vote. |
-| **Schätzfrage** | Estimate question. Closest wins points, furthest gets a Strafe. |
-| **Trinkspruch** | One random member gives a 30 s toast speech. The others rate it 1-5 Maß. |
+| Event           | What happens                                                                                                                                                            |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **PROSIT!**     | TV blares and flashes. Everyone toasts, then taps "Prost!". The last one, and anyone who misses 60 s, gets a Strafe.                                                    |
+| **Duell**       | Two random members. Reaction game on their phones (wait for "ZIEH!", tap first; an early tap loses). The other three pick a winner for points. The loser gets a Strafe. |
+| **Regel**       | A rule from a pool holds for 10 min. Anyone can hand out a Strafe for a breach.                                                                                         |
+| **Abstimmung**  | "Vem i klubben ...?" vote. The winner holds the title on the TV until the next vote.                                                                                    |
+| **Schätzfrage** | Estimate question. Closest wins points, furthest gets a Strafe.                                                                                                         |
+| **Trinkspruch** | One random member gives a 30 s toast speech. The others rate it 1-5 Maß.                                                                                                |
 
 ## Architecture
 
@@ -118,13 +121,14 @@ Not reused: odds, sim, economy, coupons, shop, both casino brands, the GM passwo
 
 ## Stages
 
-Each stage: one fresh agent session. Start prompt: *"Read CLAUDE.md, docs/META_PLAN.md and
-docs/STATUS.md, then plan and execute Stage N."* The agent writes a high-level plan for its
+Each stage: one fresh agent session. Start prompt: _"Read CLAUDE.md, docs/META_PLAN.md and
+docs/STATUS.md, then plan and execute Stage N."_ The agent writes a high-level plan for its
 stage first, gets it approved, then builds. End of every stage: `npm run build`, `npm test`
 and `npm run lint` pass, `docs/STATUS.md` gets a section (done, deviations, open issues,
 manual steps for Simon), commit, stop.
 
 ### Stage 1: Foundation
+
 - `git init`, Vite React TS, Tailwind v4, React Router (`/` and `/tv` placeholders), Vitest,
   ESLint, `vercel.json`, `.env.example`.
 - Copy the reusable pieces listed above; strip Rally75 specifics. Neutral placeholder theme.
@@ -135,6 +139,7 @@ manual steps for Simon), commit, stop.
 - Simon: create the GitHub repo and import it to Vercel.
 
 ### Stage 2: Backend + drink log + TV dashboard
+
 - Simon: create a Supabase project (or approve reusing the Rally75 one), fill `.env.local`
   and the Vercel env.
 - One migration: tables, RLS, grants, realtime publication, all RPCs.
@@ -146,6 +151,7 @@ manual steps for Simon), commit, stop.
 - Usable on Saturday even if nothing after this ships.
 
 ### Stage 3: Event engine + PROSIT! + Regel
+
 - `schedule.ts`, `resolve.ts`, `useEngine`, with tests (determinism, no repeat kinds back to
   back, fair member selection).
 - "Starta kvällen", interval control, event takeover on TV and phone, countdowns on server time.
@@ -153,17 +159,20 @@ manual steps for Simon), commit, stop.
 - Bots answer events; assert each `seq` spawns once and resolves once with five engines racing.
 
 ### Stage 4: Remaining events
+
 - Duell (reaction game plus side picks), Abstimmung, Schätzfrage, Trinkspruch.
 - Content pools in `shared/content/` (rules, votes, questions), in the house humour.
 - Simon: optional inside-joke material for the pools.
 
 ### Stage 5: Sound + takeover animations
+
 - The design system (white and blue, Rauten, blackletter, crest) was done after Stage 2; see
   `docs/STATUS.md` and the Design system section of `CLAUDE.md`. Build on it, do not replace it.
 - Event takeover animations; Web Audio brass sting and bell on the TV.
 - Dev-only `/styleguide` route.
 
 ### Stage 6: Achievements, finale, deploy, dress rehearsal
+
 - `achievements.ts` and `awards.ts` with tests; pop-ups on the TV; the finale ceremony.
 - Production env, PWA manifest and icons, wake lock on the TV, `reset_night`.
 - Rehearsal with real phones and the TV. Party-day checklist (wake the Supabase project,
@@ -183,4 +192,3 @@ The finale and the deploy checklist are not.
 - Stage 5: screenshots at 390 px portrait and 1920x1080; audio unlock on a real TV browser.
 - Stage 6: awards tests; full night at a 1 min interval with bots, ending in the finale;
   join from a real iPhone on the deployed URL.
-

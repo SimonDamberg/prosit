@@ -295,9 +295,9 @@ Simon's feedback on Stages 1 and 2: the app looked like Rally75, and the club ha
 - Only PROSIT! punishes a missing answer. A member who sleeps through a vote or a question loses nothing.
 - A club of one never draws Duell, Abstimmung or Trinkspruch (so one phone can still test).
 - With only two members a Duell has no bystanders, and a Trinkspruch one rater.
-- The pools follow the humour line in this file and the meta-plan (the club's own pomposity as
-  the target, no Nazi-themed content). `CLAUDE.md` says otherwise since the design pass; that
-  line was left alone. Simon decides which document is right and adds his own material.
+- The pools hold no Nazi-themed jokes and none at women's expense: they were written to the
+  meta-plan as it stood, with the club's own pomposity as the target. The meta-plan and
+  `CLAUDE.md` have since been changed to ask for both; the pools were not changed to match.
 
 **Open issues**
 
@@ -320,6 +320,22 @@ Simon's feedback on Stages 1 and 2: the app looked like Rally75, and the club ha
 2. Skim `src/shared/content/questions.ts`: the answers are from memory and decide Strafen.
 3. Add inside jokes to `votes.ts`, `toasts.ts`, `rules.ts` (a rule must stay under 68 characters).
 4. Try a Duell on two real phones: the reaction timing has only been driven by scripts.
+
+**Follow-up, same day**
+
+- Hosted project: `20261013000002_engine.sql` pushed, and `npm run bots -- --reset` passes all 18
+  steps against it. It ended with a wipe: the hosted night is idle with no members.
+- All 32 Schätzfrage answers checked against web sources; none was wrong, four questions were
+  reworded so only one number is right (Hofbräuhaus, Neuschwanstein, the Cologne towers, the Stange).
+- Pools grew to 51 votes, 46 toast topics and 40 rules, plus six new preset Strafe reasons. The
+  last entries of each are the members' running jokes from their Rally75 kuskar (Jesper, Axel,
+  Erik, Simon, Palm), minus the cruder ones.
+- Duell: an early "Zieh!" shown before the clock offset was measured is now taken back, and
+  `useAnswer` no longer sends twice on a double tap. Still open: the reaction counts from the
+  scheduled draw (a slow phone pays for its own lag), and a failed offset measurement falls
+  back to the phone's clock.
+- Manual steps 1 and 2 above are done. Still Simon's: a Duell on two real phones, and a reset
+  with wipe if anyone joins twice before the party.
 
 **Next:** Stage 5 (Sound + takeover animations). Start a fresh session in `Hobby/prosit` with:
 

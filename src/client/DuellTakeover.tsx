@@ -24,8 +24,17 @@ export function DuellTakeover({ event, payload, identity, members }: DuellProps)
   const drawAt = event.startedAt + payload.drawAfterMs
   const [drawn, setDrawn] = useState(false)
   useEffect(() => {
+    // `now` changes when the clock offset has been measured. A phone whose own clock runs ahead
+    // may have shown the draw too early by then, so take it back: a tap on a pad that says
+    // "Zieh!" is recorded as a reaction of 0 ms, whatever the server clock says.
+    const recheck = setTimeout(() => {
+      if (now() < drawAt) setDrawn(false)
+    }, 0)
     const timer = setTimeout(() => setDrawn(true), Math.max(0, drawAt - now()))
-    return () => clearTimeout(timer)
+    return () => {
+      clearTimeout(recheck)
+      clearTimeout(timer)
+    }
   }, [drawAt, now])
 
   const result = event.result?.kind === 'duell' ? event.result : null
