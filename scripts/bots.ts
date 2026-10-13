@@ -116,6 +116,7 @@ await step('server clock is close to ours', async () => {
 const seen = { members: 0, drinkInserts: 0, drinkDeletes: 0, strafen: 0, events: 0, night: 0 }
 await step('realtime channel subscribes', async () => {
   let subscribed = false
+  let listening = false
   db.channel('bots')
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'members' }, () => void seen.members++)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'drinks' }, (change) => {
@@ -125,12 +126,16 @@ await step('realtime channel subscribes', async () => {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'strafen' }, () => void seen.strafen++)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => void seen.events++)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'night' }, () => void seen.night++)
+    .on('system', {}, (payload: { extension?: string; status?: string }) => {
+      if (payload.extension === 'postgres_changes' && payload.status === 'ok') listening = true
+    })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') subscribed = true
     })
   await waitFor('SUBSCRIBED', () => subscribed)
-  // Postgres confirms the subscription a moment after the socket does.
-  await sleep(1500)
+  // The socket subscribes first; changes only flow once Postgres confirms, which takes a few
+  // seconds on a hosted project. Anything written before that is never delivered.
+  await waitFor('Postgres to confirm the subscription', () => listening, 30000)
 })
 
 await step('five members join', async () => {
