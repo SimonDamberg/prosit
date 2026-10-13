@@ -401,6 +401,65 @@ Simon's feedback on Stages 1 and 2: the app looked like Rally75, and the club ha
 4. The local database was reset during verification (`npx supabase db reset`); the hosted one
    was not touched.
 
+## Stage 5 follow-up: music, and PROSIT! on its own clock (done, 2026-10-14)
+
+Simon's idea after seeing Stage 5: classic Oktoberfest music on the TV, and out of nowhere
+"Ein Prosit" comes on. Chosen with him: a YouTube playlist, the real recording together with the
+PROSIT! event, on its own timer of about ten minutes, with a laptop on HDMI as the TV.
+
+**Done**
+
+- **Music** (`src/tv/music.ts`): two hidden YouTube players. The "Starta kvällen" tap on the TV
+  starts the playlist (shuffled, looping, volume 45). While an event has the stage the playlist
+  drops to 12. When a PROSIT! starts the playlist stops dead and "Ein Prosit der Gemütlichkeit"
+  plays from the top at full volume; when the result has left the stage (or the song ends) the
+  playlist picks up again.
+- Defaults: playlist `PLX_mkrrU6sCGTfiO4smALX42wCC7U3kX9` ("Wiesn-Hits: Die Klassiker-Playlist")
+  and four recordings of the song, tried in order if one refuses to be embedded. Both can be set
+  with `VITE_MUSIC_PLAYLIST` and `VITE_PROSIT_VIDEO` (see `.env.example`). Without YouTube, or
+  with no recording left, the synthesized tune from Stage 5 plays instead.
+- **PROSIT! left the programme and got its own clock** (`prositGapMs` in `schedule.ts`): 6 to 14
+  minutes after the previous one, from the seed, so nobody can set a watch by it. The other five
+  kinds keep their interval and are numbered on their own. When both are due the PROSIT! goes
+  first, and neither starts over a blocking event or its result. No migration.
+- The dev trigger "Prosit" still works; `/styleguide` has a Musik row (start, Ein Prosit, back,
+  duck) that shows what the two players are doing.
+- Tests: 149 pass (new ones for `prositGapMs` and the two clocks in `nextAction`). The bot night
+  now counts programme numbers apart from `seq` and requires at least one PROSIT!.
+- Verified in headless Chromium against real YouTube: the playlist plays, "Ein Prosit" pauses it
+  and plays, and the playlist resumes afterwards.
+
+**Deviations from META_PLAN**
+
+- "Audio: synthesized, no audio files" now has one exception, the YouTube music. The Decisions
+  table was left as it is; `CLAUDE.md` states the rule as it now stands.
+- PROSIT! no longer follows "every 8-15 min, adjustable": it comes about every ten minutes
+  whatever the interval (only below a 5 min interval does it follow, at two intervals).
+  So a night at the default pace has about twice as many events as before, half of them toasts.
+
+**Open issues**
+
+- **Not heard by anyone**, and the bot run was not repeated after the engine change (unit tests
+  cover it). Run `npm run bots -- --reset` against the local stack before the party.
+- The default playlist and recordings were picked from search results, not listened to. The
+  first recording (`dS8jpTozw0w`) did play embedded; how long it is and how it sounds is unknown.
+- The song is cut when the result leaves the stage. If everyone taps within ten seconds that is
+  about 25 s of song. Say so if it should play to its end instead.
+- YouTube may show ads unless the laptop's browser is logged in to a Premium account. An ad at
+  a PROSIT! delays the song.
+- The players are off-screen, which YouTube's terms do not like (they ask for a visible player).
+  Fine for a private party; do not ship it as a product.
+- A phone that still runs the old build plans PROSIT! the old way. Everyone must reload after
+  the deploy (a reset with wipe before the party takes care of it).
+
+**Manual steps for Simon**
+
+1. On the laptop: open `/tv` in Chrome, tap "Starta kvällen", check that the playlist starts.
+   Then `npm run dev`, `/styleguide`, the Musik row: press "Ein Prosit!" and listen.
+2. Swap the playlist or the recording if you have favourites (`VITE_MUSIC_PLAYLIST`,
+   `VITE_PROSIT_VIDEO` in the Vercel env, then redeploy).
+3. Keep the laptop from sleeping and its volume up; the TV page only holds a wake lock.
+
 **Next:** Stage 6 (Achievements, finale, deploy, dress rehearsal). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 6.

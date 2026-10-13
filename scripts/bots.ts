@@ -587,12 +587,17 @@ await step(`six engines run a night of ${NIGHT_EVENTS} events: each spawns once 
 
   assert.deepEqual(events.map((e) => e.seq), events.map((_, i) => i + 1), 'seqs run from 1 without a gap')
   const memberIds = bots.map((b) => b.memberId)
+  // PROSIT! runs on its own clock, so the programme is every other event, numbered on its own.
   let prev = ''
+  let programme = 0
   for (const event of events) {
     assert.equal(wins.spawn.get(event.seq), 1, `seq ${event.seq} spawned once`)
-    assert.notEqual(event.kind, prev, 'no kind twice in a row')
-    prev = event.kind
-    assert.deepEqual(event.payload, planEvent(seed, event.seq, 0.5, memberIds).payload, `seq ${event.seq} is the scheduled event`)
+    if (event.kind !== 'prosit') {
+      assert.notEqual(event.kind, prev, 'no programme kind twice in a row')
+      prev = event.kind
+      programme++
+      assert.deepEqual(event.payload, planEvent(seed, programme, 0.5, memberIds).payload, `seq ${event.seq} is the scheduled event`)
+    }
     if (event.status !== 'done') continue
 
     assert.equal(wins.resolve.get(event.id), 1, `seq ${event.seq} resolved once`)
@@ -603,7 +608,8 @@ await step(`six engines run a night of ${NIGHT_EVENTS} events: each spawns once 
     console.log(`      seq ${event.seq} ${event.kind}: ${expected.points.length} points, ${expected.strafen.length} Strafen`)
   }
 
-  // Six kinds are drawn at random, so a short night may hold no PROSIT! at all.
+  // A PROSIT! comes within two intervals here, so a night of six events holds at least one.
+  assert.ok(events.some((e) => e.kind === 'prosit'), 'the night had a PROSIT!')
   const slept = events.find((e) => e.id === firstProsit && e.status === 'done')
   if (slept) {
     assert.ok(slept.result?.kind === 'prosit')

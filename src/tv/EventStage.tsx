@@ -8,6 +8,7 @@ import { stageEvent } from '../shared/game/schedule'
 import type { EventResult } from '../shared/game/types'
 import { cx } from '../ui'
 import { play } from './audio'
+import { playProsit, setStageBusy, stopProsit } from './music'
 import { AbstimmungStage } from './stages/AbstimmungStage'
 import { Chip, type StageProps } from './stages/Chip'
 import { DuellStage } from './stages/DuellStage'
@@ -166,9 +167,22 @@ export function EventStage({ events, members, now }: { events: readonly EventRow
     if (sounded.current.has(key)) return
     sounded.current.add(key)
     if (!fresh) return
-    if (event.status === 'live') play(event.kind)
-    else if (event.result) play(hasStrafe(event.result) ? 'strafe' : 'tusch')
+    if (event.status === 'live') {
+      // PROSIT! gets the real song over the playlist; the synthesized one is the understudy.
+      if (event.kind !== 'prosit' || !playProsit()) play(event.kind)
+    } else if (event.result) play(hasStrafe(event.result) ? 'strafe' : 'tusch')
   }, [event, fresh])
+
+  // The playlist steps back while an event has the stage, and returns (ending the Prosit) after.
+  const staged = event !== undefined
+  useEffect(() => {
+    setStageBusy(staged)
+  }, [staged])
+  // Another event may take the stage straight after a PROSIT!: the song ends with its own event.
+  const toasting = event?.kind === 'prosit'
+  useEffect(() => {
+    if (!toasting) stopProsit()
+  }, [toasting])
 
   const { shown, leaving } = useLinger(event, EXIT_MS)
   if (!shown) return null

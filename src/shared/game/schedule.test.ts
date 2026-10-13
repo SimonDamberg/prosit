@@ -18,7 +18,11 @@ import {
   onStage,
   pickFair,
   planEvent,
+  PROSIT_EVERY_MS,
+  PROSIT_GAP_MAX,
+  PROSIT_GAP_MIN,
   PROSIT_MS,
+  prositGapMs,
   REGEL_MS,
   RESOLVE_GRACE_MS,
   responders,
@@ -109,14 +113,15 @@ describe('planEvent', () => {
     }
   })
 
-  it('draws every kind, each about as often as the others', () => {
+  it('draws every programme kind about as often as the others, and never a PROSIT!', () => {
     const counts = new Map<string, number>()
     for (let seq = 1; seq <= 300; seq++) {
       const { kind } = planEvent(1887, seq, 12, IDS)
       counts.set(kind, (counts.get(kind) ?? 0) + 1)
     }
-    expect([...counts.keys()].sort()).toEqual([...EVENT_KINDS].sort())
-    for (const n of counts.values()) expect(n).toBeGreaterThan(25)
+    expect([...counts.keys()].sort()).toEqual([...ENABLED_KINDS].sort())
+    expect(ENABLED_KINDS).not.toContain('prosit')
+    for (const n of counts.values()) expect(n).toBeGreaterThan(35)
   })
 
   it('uses every rule, vote, question and topic once before any comes back', () => {
@@ -213,6 +218,32 @@ describe('content pools', () => {
 
   it('keep every award reason within a Strafe reason', () => {
     for (const reason of Object.values(AWARD_REASONS)) expect([...reason].length).toBeLessThanOrEqual(MAX_REASON_LENGTH)
+  })
+})
+
+describe('prositGapMs', () => {
+  it('is deterministic and stays within 6 to 14 minutes', () => {
+    for (const seed of SEEDS) {
+      for (let n = 0; n < 40; n++) {
+        const gap = prositGapMs(seed, n, 12)
+        expect(prositGapMs(seed, n, 12)).toBe(gap)
+        expect(gap).toBeGreaterThanOrEqual(PROSIT_EVERY_MS * PROSIT_GAP_MIN)
+        expect(gap).toBeLessThanOrEqual(PROSIT_EVERY_MS * PROSIT_GAP_MAX)
+      }
+    }
+  })
+
+  it('averages about ten minutes and does not come at a fixed beat', () => {
+    const gaps = Array.from({ length: 200 }, (_, n) => prositGapMs(1887, n, 12))
+    const mean = gaps.reduce((sum, g) => sum + g, 0) / gaps.length
+    expect(mean).toBeGreaterThan(9 * 60_000)
+    expect(mean).toBeLessThan(11 * 60_000)
+    expect(new Set(gaps).size).toBeGreaterThan(150)
+  })
+
+  it('does not follow the interval, except down to two short intervals', () => {
+    expect(prositGapMs(42, 3, 30)).toBe(prositGapMs(42, 3, 5))
+    expect(prositGapMs(42, 3, 0.5)).toBeLessThanOrEqual(60_000 * PROSIT_GAP_MAX)
   })
 })
 
@@ -342,10 +373,63 @@ describe('nextAction', () => {
     expect(nextAction({ ...base, memberIds: [] }, late).type).toBe('wait')
   })
 
+  // With seed 42 the two clocks start like this; the tests below need them apart.
+  const toast = prositGapMs(42, 0, 12)
+  const early = Math.min(toast, first.gapMs)
+
   it('spawns the first event when its wait is over, not before', () => {
-    expect(nextAction(base, T0 + first.gapMs - 1)).toEqual({ type: 'wait' })
+    expect(toast).not.toBe(first.gapMs)
+    expect(nextAction(base, T0 + early - 1)).toEqual({ type: 'wait' })
+    const action = nextAction(base, T0 + early)
+    expect(action.type === 'spawn' && action.plan.seq).toBe(1)
+    expect(action.type === 'spawn' && action.plan.kind).toBe(toast < first.gapMs ? 'prosit' : first.kind)
+  })
+
+  it('runs PROSIT! on its own clock, between the events of the programme', () => {
+    // Only the programme has had its turn: the PROSIT! is due when its own wait is over.
+    const rule = event({ kind: 'regel', payload: { kind: 'regel', rule: 'R' }, startedAt: T0 + toast - 5, status: 'done', resolvedAt: T0 + toast - 4 })
+    expect(nextAction({ ...base, events: [rule] }, T0 + toast - 1)).toEqual({ type: 'wait' })
+    const due = nextAction({ ...base, events: [rule] }, T0 + toast)
+    expect(due).toEqual({
+      type: 'spawn',
+      plan: { seq: 2, kind: 'prosit', payload: { kind: 'prosit' }, gapMs: toast, durationMs: PROSIT_MS },
+      endsAt: T0 + toast + PROSIT_MS,
+    })
+
+    // Only a PROSIT! has been: the programme still starts with its first event, as seq 2.
+    const done = event({ status: 'done', resolvedAt: T0 + 20_000 })
+    const second = prositGapMs(42, 1, 12)
+    expect(first.gapMs).toBeLessThan(second)
+    expect(nextAction({ ...base, events: [done] }, T0 + first.gapMs - 1)).toEqual({ type: 'wait' })
     const now = T0 + first.gapMs
-    expect(nextAction(base, now)).toEqual({ type: 'spawn', plan: first, endsAt: now + first.durationMs })
+    expect(nextAction({ ...base, events: [done] }, now)).toEqual({ type: 'spawn', plan: { ...first, seq: 2 }, endsAt: now + first.durationMs })
+  })
+
+  it('lets the PROSIT! go first when both are due', () => {
+    const action = nextAction(base, T0 + 60 * 60_000)
+    expect(action.type === 'spawn' && action.plan.kind).toBe('prosit')
+  })
+
+  it('counts each wait from the previous event of its own clock', () => {
+    const done = event({ startedAt: T0 + 100_000, status: 'done', resolvedAt: T0 + 120_000 })
+    const second = prositGapMs(42, 1, 12)
+    const state = { ...base, night: { ...base.night, startedAt: T0 - 60 * 60_000 }, events: [done] }
+    // The programme is long overdue (the night started an hour ago), the next PROSIT! is not.
+    const action = nextAction(state, T0 + 100_000 + second - 1)
+    expect(action.type === 'spawn' && action.plan.kind).toBe(first.kind)
+    const rule = event({ id: 'e2', seq: 2, kind: 'regel', payload: { kind: 'regel', rule: 'R' }, startedAt: T0 + 100_000 + second - 10, status: 'done', resolvedAt: T0 + 100_000 + second - 9 })
+    const after = { ...state, events: [done, rule] }
+    expect(nextAction(after, T0 + 100_000 + second - 1)).toEqual({ type: 'wait' })
+    const toastAgain = nextAction(after, T0 + 100_000 + second)
+    expect(toastAgain.type === 'spawn' && toastAgain.plan.kind).toBe('prosit')
+    expect(toastAgain.type === 'spawn' && toastAgain.plan.seq).toBe(3)
+  })
+
+  it('leaves room for the result of the event before', () => {
+    const late = event({ status: 'done', resolvedAt: T0 + 60 * 60_000 })
+    const state = { ...base, events: [late] }
+    expect(nextAction(state, T0 + 60 * 60_000 + RESULT_MS - 1)).toEqual({ type: 'wait' })
+    expect(nextAction(state, T0 + 60 * 60_000 + RESULT_MS).type).toBe('spawn')
   })
 
   it('spawns at once when forced', () => {
@@ -354,6 +438,7 @@ describe('nextAction', () => {
 
   it('follows a change of interval at once', () => {
     const now = T0 + planEvent(42, 1, 3, members).gapMs
+    expect(now).toBeLessThan(T0 + early)
     expect(nextAction(base, now).type).toBe('wait')
     expect(nextAction({ ...base, night: { ...base.night, intervalMin: 3 } }, now).type).toBe('spawn')
   })
@@ -393,19 +478,6 @@ describe('nextAction', () => {
     expect(nextAction(state, rule.endsAt + RESOLVE_GRACE_MS)).toEqual({ type: 'resolve', event: rule })
   })
 
-  it('counts the wait from the previous event, and leaves room for its result', () => {
-    const second = planEvent(42, 2, 12, members)
-    const done = event({ status: 'done', resolvedAt: T0 + 20_000 })
-    const state = { ...base, events: [done] }
-    expect(nextAction(state, T0 + second.gapMs - 1).type).toBe('wait')
-    expect(nextAction(state, T0 + second.gapMs).type).toBe('spawn')
-
-    // Resolved late: the next one waits for the result to leave the screens.
-    const late = event({ status: 'done', resolvedAt: T0 + second.gapMs })
-    expect(nextAction({ ...base, events: [late] }, T0 + second.gapMs + RESULT_MS - 1).type).toBe('wait')
-    expect(nextAction({ ...base, events: [late] }, T0 + second.gapMs + RESULT_MS).type).toBe('spawn')
-  })
-
   it('closes a Duell once both duellists have tapped, whatever the bystanders do', () => {
     const duell = event({ kind: 'duell', payload: { kind: 'duell', a: 'a', b: 'c', drawAfterMs: 30_000 }, endsAt: T0 + DUELL_MS })
     const state = { ...base, events: [duell] }
@@ -425,5 +497,7 @@ describe('nextAction', () => {
   it('spawns the kind the dev trigger names', () => {
     const forced = nextAction(base, T0 + 1, 'schatzfrage')
     expect(forced.type === 'spawn' && forced.plan.kind).toBe('schatzfrage')
+    const prosit = nextAction(base, T0 + 1, 'prosit')
+    expect(prosit.type === 'spawn' && prosit.plan.payload).toEqual({ kind: 'prosit' })
   })
 })

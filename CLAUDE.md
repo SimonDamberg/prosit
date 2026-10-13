@@ -21,7 +21,9 @@ is the shared backend. There is no game master: the app paces itself.
   alltid gjort". Bavarian beer-hall kitsch. **Nazi-themed content**, is apprieciated.
 - **No em dash** (U+2014) anywhere under `src/`, in any language. A test enforces this. Use a
   comma, a period or parentheses instead. In source code write `'—'` if you must refer to it.
-- **Audio on the TV only**, synthesized with Web Audio (no audio files). Phones stay silent.
+- **Audio on the TV only.** Phones stay silent. Event sounds are synthesized with Web Audio (no
+  audio files). The one exception is the music: a YouTube playlist in the background and the real
+  "Ein Prosit" at every PROSIT! (`src/tv/music.ts`), which must always fall back to the synth.
 - **The TV is pure output.** After the one "Starta kvällen" tap that unlocks audio, nothing on
   `/tv` needs touching. Every control lives on the phones.
 - **No game master.** Any member can start the night, change the interval and end it. Never add
@@ -92,11 +94,15 @@ database referees. That includes the TV: phones sleep in pockets, the TV never d
 the engine as nobody (`spawn_event` and `resolve_event` take a null member; nothing else does).
 
 - `planEvent(seed, seq, intervalMin, memberIds)` in `src/shared/game/schedule.ts` (pure): event
-  N's kind, payload, wait and duration, from `createRng(seed + N)`. Kinds never repeat back to
-  back. All six kinds are drawn (`ENABLED_KINDS`); `COMPANY_KINDS` need two members. Texts come
+  N of the **programme**: kind, payload, wait and duration, from `createRng(seed + N)`. Kinds never
+  repeat back to back. `ENABLED_KINDS` are the five it draws; `COMPANY_KINDS` need two members.
+- **PROSIT! is not in the programme. It has its own clock:** `prositGapMs(seed, count, interval)`,
+  6 to 14 min after the previous PROSIT! (about every ten), so it cuts in between the others. The
+  programme number of an event is therefore not its `seq`; `nextAction` sets the `seq`. Texts come
   from seed-shuffled pools, duellists and speakers from `pickFair` (fair rounds).
 - `nextAction(state, now)` (pure, same file): the whole decision, `spawn`, `resolve` or `wait`.
-  The wait runs from the previous event's `started_at` at the *current* interval. A Regel is
+  Each clock waits from the previous event of its own kind (`started_at`, at the *current*
+  interval); when both are due the PROSIT! goes first; neither starts over a blocking event or its result. A Regel is
   non-blocking: the next event may start while the rule holds. An event closes early once
   everyone in `responders(payload, memberIds)` has answered (a Duell: its two duellists).
 - `stageEvent(events, now)`: the blocking event that owns the screens, live or showing its
@@ -156,5 +162,10 @@ plates, no condensed uppercase sans, no chunky sinking buttons).
   `flourish` (a brass rule under good news).
 - `StageFrame` (`src/tv/EventStage.tsx`) is the stage without the engine; `Modal` takes `band`
   for event modals on the phone (`LiveModal`, `VerdictModal` use it).
+- **Music** (`src/tv/music.ts`): two hidden YouTube IFrame players, started by the unlock tap.
+  `MUSIC` holds the playlist id and the "Ein Prosit" video ids (override with
+  `VITE_MUSIC_PLAYLIST` / `VITE_PROSIT_VIDEO`). `EventStage` calls `playProsit()` when a PROSIT!
+  starts (false means: play the synth cue instead) and `setStageBusy()` to duck the playlist
+  while any event has the stage and to return to it afterwards.
 - `/styleguide` (dev only) shows all of it. `/styleguide?stage=prosit-live` is one stage alone at
   full size; the scene names are in `src/styleguide/fixtures.ts`. Add a scene for a new stage.

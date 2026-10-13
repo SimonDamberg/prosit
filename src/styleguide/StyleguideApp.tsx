@@ -3,6 +3,7 @@ import { useServerNow } from '../lib/hooks'
 import { BRAND } from '../shared/content/ui'
 import { measureCue, play, unlockAudio } from '../tv/audio'
 import { StageFrame } from '../tv/EventStage'
+import { MUSIC, musicState, playProsit, setStageBusy, startMusic, stopProsit } from '../tv/music'
 import { CUE_NAMES, CUES, cueLength, type CueName } from '../tv/score'
 import { Chip } from '../tv/stages/Chip'
 import { Button, ConnectionBadge, Crest, cx, Modal, Shield, toast, Toaster, type ModalTone } from '../ui'
@@ -141,6 +142,42 @@ function Sounds() {
           })}
         </tbody>
       </table>
+    </Section>
+  )
+}
+
+function Music() {
+  const [state, setState] = useState(musicState)
+  const run = (action: () => unknown) => () => {
+    action()
+    setState(musicState())
+  }
+  return (
+    <Section title="Musik (YouTube, endast TV:n)">
+      <div className="flex flex-wrap gap-2">
+        <Button variant="quiet" onClick={run(startMusic)}>
+          Starta spellistan
+        </Button>
+        <Button variant="quiet" onClick={run(playProsit)}>
+          Ein Prosit!
+        </Button>
+        <Button variant="quiet" onClick={run(stopProsit)}>
+          Tillbaka till spellistan
+        </Button>
+        <Button variant="ghost" onClick={run(() => setStageBusy(true))}>
+          Dämpa
+        </Button>
+        <Button variant="ghost" onClick={run(() => setStageBusy(false))}>
+          Full volym
+        </Button>
+        <Button variant="ghost" onClick={run(() => {})}>
+          Läs av
+        </Button>
+      </div>
+      <p className="text-weste-dim" data-music={JSON.stringify(state)}>
+        Spellista {MUSIC.playlist} ({state.bandReady ? 'redo' : state.started ? 'laddar' : 'ej startad'}), Prosit-video {state.video} (
+        {state.singerReady ? 'redo' : 'ej redo'}){state.singing ? ', sjunger' : ''}
+      </p>
     </Section>
   )
 }
@@ -304,6 +341,7 @@ export default function StyleguideApp() {
       <Motion />
       <Modals />
       <Sounds />
+      <Music />
       <Stages />
       <Toaster />
     </main>

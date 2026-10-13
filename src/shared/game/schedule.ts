@@ -8,8 +8,11 @@ import { VOTES } from '../content/votes'
 import { createRng } from './rng'
 import type { EventKind, EventPayload, EventStatus, NightStatus } from './types'
 
-/** Kinds the schedule may draw. */
-export const ENABLED_KINDS: readonly EventKind[] = ['prosit', 'duell', 'regel', 'abstimmung', 'schatzfrage', 'trinkspruch']
+/**
+ * Kinds the programme draws from. PROSIT! is not one of them: it keeps its own clock (see
+ * `prositGapMs`) and cuts in between the others, about every ten minutes.
+ */
+export const ENABLED_KINDS: readonly EventKind[] = ['duell', 'regel', 'abstimmung', 'schatzfrage', 'trinkspruch']
 
 /** Kinds that take two members or more. A smaller club never draws them. */
 export const COMPANY_KINDS: readonly EventKind[] = ['duell', 'abstimmung', 'trinkspruch']
@@ -32,15 +35,21 @@ export const DRAW_MAX = 0.85
 /** The wait before an event is the interval times a factor in this range: 8 to 15 min at 12. */
 export const GAP_MIN = 0.67
 export const GAP_MAX = 1.25
+/** A PROSIT! comes about this often, whatever the programme is doing. */
+export const PROSIT_EVERY_MS = 10 * 60_000
+/** The wait before a PROSIT! is that time a factor in this range (6 to 14 min), so nobody can set a watch by it. */
+export const PROSIT_GAP_MIN = 0.6
+export const PROSIT_GAP_MAX = 1.4
 /** After a deadline, before resolving: lets the last answers land in every client's fetch. */
 export const RESOLVE_GRACE_MS = 1000
 /** After a blocking event resolves, the result owns the screens for this long. */
 export const RESULT_MS = 12_000
 
 // Each pool is shuffled by the seed plus its own salt, so the pools do not move in step.
-const SALT = { votes: 7_919, questions: 15_485_863, toasts: 104_729, speaker: 1_299_709 } as const
+const SALT = { votes: 7_919, questions: 15_485_863, toasts: 104_729, speaker: 1_299_709, prosit: 611_953 } as const
 
 export interface EventPlan {
+  /** From `planEvent`: the number in the programme. From `nextAction`: the seq to spawn it as. */
   seq: number
   kind: EventKind
   payload: EventPayload
@@ -51,7 +60,8 @@ export interface EventPlan {
 }
 
 /**
- * Event `seq` (from 1) of the night with this seed. The kind never repeats the previous one, and
+ * Event `seq` (from 1) of the night's programme with this seed, which is every event but the
+ * PROSIT!s that cut in between. The kind never repeats the previous one, and
  * rules, votes, questions and topics come out of seed-shuffled pools, so none repeats until all
  * have been used. Duellists and speakers are picked in fair rounds from `memberIds`.
  * Texts are copied into the payload: an event stays readable even if the pool changes.
@@ -109,6 +119,15 @@ export function planEvent(
       return { seq, kind, payload: { kind, speaker, topic }, gapMs, durationMs: lasts(TRINKSPRUCH_MS) }
     }
   }
+}
+
+/**
+ * The wait before PROSIT! number `count` (from 0) of the night, from the previous one's start or
+ * the night's. Never more than two intervals, so a night on a short (test) interval toasts too.
+ */
+export function prositGapMs(seed: number, count: number, intervalMin: number): number {
+  const every = Math.min(PROSIT_EVERY_MS, 2 * intervalMin * 60_000)
+  return Math.round(every * createRng(seed + SALT.prosit + count).float(PROSIT_GAP_MIN, PROSIT_GAP_MAX))
 }
 
 /**
@@ -209,8 +228,12 @@ export type EngineAction =
 
 /**
  * What a client should do at server time `now`: close an event that is over, open the next one
- * when it is due, or nothing. `force` opens the next event without waiting for its time (the dev
- * trigger), as a given kind if it names one; it still waits for a blocking event to finish.
+ * when it is due, or nothing. Two clocks run side by side: the programme (`planEvent`, waiting
+ * from the previous programme event) and PROSIT! (`prositGapMs`, waiting from the previous
+ * PROSIT!). When both are due the PROSIT! goes first. Neither starts while a blocking event is
+ * live or its result is still on the screens.
+ * `force` opens the next programme event without waiting for its time (the dev trigger), or an
+ * event of the kind it names; it still waits for a live blocking event to finish.
  */
 export function nextAction(state: EngineState, now: number, force: boolean | EventKind = false): EngineAction {
   const { night, memberIds } = state
@@ -230,15 +253,28 @@ export function nextAction(state: EngineState, now: number, force: boolean | Eve
   if (memberIds.length === 0) return { type: 'wait' }
   if (live.some((e) => !NON_BLOCKING_KINDS.includes(e.kind))) return { type: 'wait' }
 
-  const last = events.at(-1)
-  const forceKind = typeof force === 'string' ? force : undefined
-  const plan = planEvent(night.seed, (last?.seq ?? 0) + 1, night.intervalMin, memberIds, forceKind)
-  if (!force) {
-    let due = (last?.startedAt ?? night.startedAt) + plan.gapMs
-    if (last && last.resolvedAt !== null && !NON_BLOCKING_KINDS.includes(last.kind)) {
-      due = Math.max(due, last.resolvedAt + RESULT_MS)
-    }
-    if (now < due) return { type: 'wait' }
+  const seq = (events.at(-1)?.seq ?? 0) + 1
+  const prosits = events.filter((e) => e.kind === 'prosit')
+  const programme = events.filter((e) => e.kind !== 'prosit')
+  const intervalMs = night.intervalMin * 60_000
+  const prosit: EventPlan = {
+    seq,
+    kind: 'prosit',
+    payload: { kind: 'prosit' },
+    gapMs: prositGapMs(night.seed, prosits.length, night.intervalMin),
+    durationMs: Math.round(Math.min(PROSIT_MS, intervalMs)),
   }
-  return { type: 'spawn', plan, endsAt: now + plan.durationMs }
+  const forceKind = typeof force === 'string' && force !== 'prosit' ? force : undefined
+  const next: EventPlan = { ...planEvent(night.seed, programme.length + 1, night.intervalMin, memberIds, forceKind), seq }
+  const spawn = (plan: EventPlan): EngineAction => ({ type: 'spawn', plan, endsAt: now + plan.durationMs })
+
+  if (force) return spawn(force === 'prosit' ? prosit : next)
+
+  // The result of the last blocking event keeps the screens for a while.
+  const shown = events.filter((e) => !NON_BLOCKING_KINDS.includes(e.kind)).at(-1)
+  if (shown && shown.resolvedAt !== null && now < shown.resolvedAt + RESULT_MS) return { type: 'wait' }
+
+  if (now >= (prosits.at(-1)?.startedAt ?? night.startedAt) + prosit.gapMs) return spawn(prosit)
+  if (now >= (programme.at(-1)?.startedAt ?? night.startedAt) + next.gapMs) return spawn(next)
+  return { type: 'wait' }
 }
