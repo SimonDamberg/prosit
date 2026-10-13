@@ -259,6 +259,68 @@ Simon's feedback on Stages 1 and 2: the app looked like Rally75, and the club ha
    points at. For the local stack: `BOTS_SUPABASE_URL=http://127.0.0.1:54321
    BOTS_SUPABASE_KEY=<publishable key from npx supabase status> npm run bots -- --reset`.
 
-**Next:** Stage 4 (Remaining events). Start a fresh session in `Hobby/prosit` with:
+## Stage 4: Duell, Abstimmung, Schätzfrage, Trinkspruch (done, 2026-10-13)
 
-> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 4.
+**Done**
+
+- All six kinds are now drawn. `planEvent` takes the member list (and, for the dev trigger, a
+  forced kind); `responders` says who must answer before an event closes early; `stageEvent`
+  finds the event that owns the screens. `resolve.ts` has the four new resolvers.
+- **Duell** (45 s): two members in fair rounds. The draw comes 60 to 85 % into it. Fastest tap
+  after the draw wins 3 points, the other gets a Strafe; a tap before the draw is a false start
+  and loses; no winner means a Strafe each. Bystanders pick a winner until the draw, 1 point if right.
+- **Abstimmung** (60 s): vote for a member. The winner (or winners, on a tie) holds the title on
+  a strip on the TV dashboard until the next vote. No points, no Strafe.
+- **Schätzfrage** (75 s): closest 3 points, furthest a Strafe (if anyone was further off than the best).
+- **Trinkspruch** (90 s): 15 s to get up, 30 s of speech, then the others rate 1 to 5 Maß. The
+  speaker earns the rounded average as points; under 2,0 it is a Strafe instead.
+- Phone: `EventTakeover` picks the screen; every kind is built from `useAnswer`, `LiveModal` and
+  `VerdictModal` (PROSIT! was moved onto them). Dev builds get one trigger button per kind.
+- TV: a stage per kind in `src/tv/stages/`, the title strip, and two more placeholder sounds
+  (`playCall`, `playDraw`) for Stage 5 to replace.
+- Pools: 30 votes, 32 questions, 25 toast topics, and the rules grew from 12 to 24.
+- Bots answer every kind, and a new step sends one event of each new kind through the RPCs.
+- No migration: the Stage 3 RPCs already took all six kinds.
+- Verified on the local stack: 118 tests, lint and build pass. Bots pass all 18 steps, including a
+  night of six events with six racing engines (one spawn and one resolve each, results and awards
+  equal to `resolve()`). Headless Chromium, one 1920x1080 TV and three 390x844 phones, every kind
+  via the dev triggers: a Duell with picks and one with a false start, a vote and its title strip,
+  a Schätzfrage (text refused, "1 600" and "3,5" accepted), a Trinkspruch through its three acts,
+  and PROSIT! on the shared takeover. Right verdicts on all screens, no console errors.
+
+**Deviations from META_PLAN**
+
+- `EventPayload` and `EventResult` grew: an Abstimmung carries its `title`, and results carry
+  what the screens show (`reactions`, `falseStarts`, `guesses`, `ratings`).
+- Only PROSIT! punishes a missing answer. A member who sleeps through a vote or a question loses nothing.
+- A club of one never draws Duell, Abstimmung or Trinkspruch (so one phone can still test).
+- With only two members a Duell has no bystanders, and a Trinkspruch one rater.
+- The pools follow the humour line in this file and the meta-plan (the club's own pomposity as
+  the target, no Nazi-themed content). `CLAUDE.md` says otherwise since the design pass; that
+  line was left alone. Simon decides which document is right and adds his own material.
+
+**Open issues**
+
+- Not tried: real phones, a real TV, the hosted database, the two new sounds by ear. The final
+  wording of the Schätzfrage and Trinkspruch result headings changed after the headless run.
+- The dev trigger for a Duell or Trinkspruch picks the same members each time until a scheduled
+  event of that kind has passed (the turn counts scheduled events only).
+- A stale row in `members` is now a bigger nuisance: it can be drawn as a duellist or a speaker.
+  Reset with wipe before the party.
+- Points are only shown in the verdicts. A running tally belongs with the awards in Stage 6.
+- The answer to a Schätzfrage travels in the event payload, so a member with dev tools can read
+  it. Five friends.
+- A member who opens the phone after the draw sees "Zieh!" at once and can only lose time.
+- Speakers and duellists come in fair rounds per kind, not across kinds: the same member can get
+  a Duell and a Trinkspruch close together.
+
+**Manual steps for Simon**
+
+1. Nothing new for the database. The Stage 3 `npx supabase db push` is still needed if not done.
+2. Skim `src/shared/content/questions.ts`: the answers are from memory and decide Strafen.
+3. Add inside jokes to `votes.ts`, `toasts.ts`, `rules.ts` (a rule must stay under 68 characters).
+4. Try a Duell on two real phones: the reaction timing has only been driven by scripts.
+
+**Next:** Stage 5 (Sound + takeover animations). Start a fresh session in `Hobby/prosit` with:
+
+> Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 5.

@@ -28,7 +28,8 @@ export type EventPayload =
   /** Two members play the reaction game. `drawAfterMs` is when "ZIEH!" shows, from started_at. */
   | { kind: 'duell'; a: string; b: string; drawAfterMs: number }
   | { kind: 'regel'; rule: string }
-  | { kind: 'abstimmung'; question: string }
+  /** `title` is what the winner is called on the TV until the next vote. */
+  | { kind: 'abstimmung'; question: string; title: string }
   | { kind: 'schatzfrage'; question: string; answer: number; unit: string }
   | { kind: 'trinkspruch'; speaker: string; topic: string }
 
@@ -50,13 +51,18 @@ export type EventResponse =
 export type EventResult =
   /** `order` is member ids, fastest first. `missed` never tapped. */
   | { kind: 'prosit'; order: string[]; missed: string[] }
-  /** `winner` is null when both false-started or neither tapped. */
-  | { kind: 'duell'; winner: string | null; loser: string | null }
+  /**
+   * `winner` and `loser` are null when both false-started or neither tapped. `reactions` is ms
+   * after the draw, for every valid tap. `falseStarts` tapped before it.
+   */
+  | { kind: 'duell'; winner: string | null; loser: string | null; reactions: Record<string, number>; falseStarts: string[] }
   | { kind: 'regel' }
   /** `winners` holds more than one id on a tie. */
   | { kind: 'abstimmung'; winners: string[]; votes: Record<string, number> }
-  | { kind: 'schatzfrage'; closest: string | null; furthest: string | null }
-  | { kind: 'trinkspruch'; average: number | null }
+  /** `furthest` is null unless somebody was further off than `closest`. */
+  | { kind: 'schatzfrage'; closest: string | null; furthest: string | null; guesses: Record<string, number> }
+  /** `average` is null when nobody rated. */
+  | { kind: 'trinkspruch'; average: number | null; ratings: Record<string, number> }
 
 export interface PointsAward {
   memberId: string

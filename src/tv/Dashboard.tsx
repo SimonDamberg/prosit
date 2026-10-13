@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, type ReactNode } from 'react'
 import type { ConnectionStatus } from '../lib/connection'
 import { useServerNow } from '../lib/hooks'
 import type { DrinkRow, EventRow, MemberRow, NightRow, StrafeRow } from '../lib/types'
-import { REGEL, TV_STAGE } from '../shared/content/events'
+import { ABSTIMMUNG, REGEL, TV_STAGE } from '../shared/content/events'
 import { TV_EMPTY, TV_ENDED, TV_JOIN, TV_STRAFEN, TV_TOTALS } from '../shared/content/tv'
 import { BRAND } from '../shared/content/ui'
 import { strafeTally, sumTallies, tallyDrinks } from '../shared/game/drinks'
@@ -75,6 +75,13 @@ export function Dashboard({ night, members, drinks, strafen, events, connection 
   const ended = night.status === 'ended'
   const joinUrl = window.location.origin
   const rules = events.filter((e) => e.status === 'live' && e.payload.kind === 'regel')
+  // The title from the latest vote that had a winner, held until the next one.
+  const titled = events.flatMap((e) =>
+    e.payload.kind === 'abstimmung' && e.result?.kind === 'abstimmung' && e.result.winners.length > 0
+      ? [{ id: e.id, title: e.payload.title, winners: e.result.winners }]
+      : [],
+  ).at(-1)
+  const nameOf = (id: string) => members.find((m) => m.id === id)?.name ?? '?'
 
   return (
     <main className="relative flex h-full flex-col gap-6 overflow-hidden px-10 pb-8">
@@ -121,6 +128,11 @@ export function Dashboard({ night, members, drinks, strafen, events, connection 
               {e.payload.kind === 'regel' && e.payload.rule}
             </Strip>
           ))}
+          {titled && !ended && (
+            <Strip key={titled.id} label={ABSTIMMUNG.banner}>
+              {ABSTIMMUNG.holder(titled.title, titled.winners.map(nameOf).join(', '))}
+            </Strip>
+          )}
           <div className="grid min-h-0 flex-1 grid-cols-[3fr_2fr] gap-6">
             <MemberBars members={members} tallies={tallies} strafeCounts={strafeCounts} />
             <div className="grid min-h-0 grid-rows-2 gap-6">

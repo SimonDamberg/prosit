@@ -41,7 +41,7 @@ npm test         # vitest run (all src/**/*.test.ts)
 npm run lint
 npm run build    # tsc -b && vite build
 npm run bots -- --reset          # backend check: five fake members through every RPC, then a short
-                                 # night with six racing engines, about 3 min (WIPES the night)
+                                 # night with six racing engines, about 4 min (WIPES the night)
 npm run bots -- --reset --stay   # then keep them drinking and answering events, to watch /tv
 npx supabase start               # local stack (Docker); `npx supabase db reset` reapplies the migrations
 ```
@@ -51,7 +51,7 @@ Env: copy `.env.example` to `.env.local`. Only `VITE_`-prefixed vars reach the b
 ## Folder rules
 
 ```
-src/shared/content/  Copy and pools (rules, votes, questions, awards). Data plus string templates only.
+src/shared/content/  Copy and pools (rules, votes, questions, toasts, awards). Data plus string templates only.
 src/shared/game/     Pure game logic: rng, types, format; schedule, resolve, awards from Stage 3.
 src/lib/             Supabase client, typed RPC wrappers, realtime hooks, clock, identity.
 src/ui/              Design-system components shared by both apps.
@@ -89,12 +89,16 @@ There is no server process and no GM, so **every connected client runs the same 
 database referees. That includes the TV: phones sleep in pockets, the TV never does, so it runs
 the engine as nobody (`spawn_event` and `resolve_event` take a null member; nothing else does).
 
-- `planEvent(seed, seq, intervalMin)` in `src/shared/game/schedule.ts` (pure): event N's kind,
-  payload, wait and duration, from `createRng(seed + N)`. Kinds never repeat back to back.
-  Only `ENABLED_KINDS` are drawn; `pickFair` picks members in fair rounds.
+- `planEvent(seed, seq, intervalMin, memberIds)` in `src/shared/game/schedule.ts` (pure): event
+  N's kind, payload, wait and duration, from `createRng(seed + N)`. Kinds never repeat back to
+  back. All six kinds are drawn (`ENABLED_KINDS`); `COMPANY_KINDS` need two members. Texts come
+  from seed-shuffled pools, duellists and speakers from `pickFair` (fair rounds).
 - `nextAction(state, now)` (pure, same file): the whole decision, `spawn`, `resolve` or `wait`.
   The wait runs from the previous event's `started_at` at the *current* interval. A Regel is
-  non-blocking: the next event may start while the rule holds.
+  non-blocking: the next event may start while the rule holds. An event closes early once
+  everyone in `responders(payload, memberIds)` has answered (a Duell: its two duellists).
+- `stageEvent(events, now)`: the blocking event that owns the screens, live or showing its
+  result for `RESULT_MS`. The phone (`EventTakeover`) and the TV (`EventStage`) both use it.
 - `resolve(payload, answers, memberIds)` in `resolve.ts` (pure) -> `Resolution` (`types.ts`).
 - `useEngine` (`src/lib/useEngine.ts`) ticks on **server time** (`src/lib/clock.ts`), reads the
   answers fresh and calls `spawn_event` / `resolve_event`. Mounted once in each app shell.
@@ -102,9 +106,13 @@ the engine as nobody (`spawn_event` and `resolve_event` take a null member; noth
   make the first write win and the rest no-ops. `respond` closes at `ends_at`, so the answers are
   frozen before anyone resolves. This only works while schedule and resolve stay deterministic:
   the same inputs must give the same output on every device.
-- A new event kind needs: a `planEvent` case and an entry in `ENABLED_KINDS`, a `resolve` case,
-  copy in `src/shared/content/events.ts`, a phone screen, a stage in `src/tv/EventStage.tsx`, and
-  tests for both pure functions.
+- A new event kind needs: a `planEvent` case and an entry in `ENABLED_KINDS`, a `responders`
+  rule, a `resolve` case, copy in `src/shared/content/events.ts`, a takeover in
+  `src/client/EventTakeover.tsx` (built from `useAnswer`, `LiveModal`, `VerdictModal`), a stage in
+  `src/tv/EventStage.tsx` (`src/tv/stages/`), a bot answer in `scripts/bots.ts`, and tests for
+  both pure functions.
+- Only PROSIT! punishes a missing answer. A Duell tap is `serverNow - started_at` on the phone
+  that showed the draw, so a clock offset cancels out; a tap before `drawAfterMs` is a false start.
 - `events.payload`, `events.result` and `responses.payload` hold the `EventPayload`,
   `EventResult` and `EventResponse` unions. They must survive a JSON round trip.
 

@@ -5,7 +5,7 @@
 //   npm run bots -- --reset --stay   then keep five bots drinking and answering events, to watch
 //                                    /tv (Ctrl+C stops)
 //
-// The engine step runs a real short night (about three minutes): six engines race on every event.
+// The engine step runs a real short night (about four minutes): six engines race on every event.
 //
 // Env (from the shell or .env.local): VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY.
 // BOTS_SUPABASE_URL / BOTS_SUPABASE_KEY override them.
@@ -23,7 +23,7 @@ import { MAX_MEMBERS, MAX_NAME_LENGTH, MEMBER_COLOURS } from '../src/shared/game
 import { resolve } from '../src/shared/game/resolve'
 import { createRng } from '../src/shared/game/rng'
 import { ANSWERED_KINDS, nextAction, planEvent } from '../src/shared/game/schedule'
-import { DRINK_KINDS, type Resolution } from '../src/shared/game/types'
+import { DRINK_KINDS, type EventPayload, type EventResponse, type Resolution } from '../src/shared/game/types'
 
 if (!process.argv.includes('--reset')) {
   console.error('bots: this wipes the night and every member. Run with --reset to confirm.')
@@ -121,27 +121,61 @@ async function engineTick(who: Identity | null) {
   }
 }
 
-/** Every bot toasts a live PROSIT! after a moment. `skip` names a bot that sleeps through it. */
-const toasted = new Set<string>()
-function toast(event: EventRow, rng: ReturnType<typeof createRng>, skip: Identity | null) {
-  if (event.kind !== 'prosit' || event.status !== 'live' || toasted.has(event.id)) return
-  toasted.add(event.id)
+/**
+ * Every bot answers a live event after a moment, as a phone would: a toast, a tap at the draw or a
+ * pick, a vote, a guess, a rating. `skip` names a bot that sleeps through it.
+ */
+const answered = new Set<string>()
+function answer(event: EventRow, rng: ReturnType<typeof createRng>, skip: Identity | null) {
+  if (event.status !== 'live' || event.kind === 'regel' || answered.has(event.id)) return
+  answered.add(event.id)
+  const { payload } = event
   for (const bot of bots) {
     if (bot === skip) continue
+    let delay = rng.float(400, 4000)
+    let response: EventResponse
+    switch (payload.kind) {
+      case 'prosit':
+        response = { kind: 'prosit' }
+        break
+      case 'duell':
+        if (bot.memberId === payload.a || bot.memberId === payload.b) {
+          // One in five jumps the draw.
+          const reaction = rng.next() < 0.2 ? -rng.float(500, 3000) : rng.float(200, 700)
+          const tapMs = Math.round(payload.drawAfterMs + reaction)
+          delay = Math.max(0, event.startedAt + tapMs - (Date.now() + clockOffset))
+          response = { kind: 'duell', tapMs }
+        } else {
+          response = { kind: 'duell_pick', pick: rng.next() < 0.5 ? payload.a : payload.b }
+        }
+        break
+      case 'abstimmung':
+        response = { kind: 'abstimmung', vote: rng.pick(bots).memberId }
+        break
+      case 'schatzfrage':
+        response = { kind: 'schatzfrage', guess: Math.round(payload.answer * rng.float(0.5, 1.5)) }
+        break
+      case 'trinkspruch':
+        if (bot.memberId === payload.speaker) continue
+        response = { kind: 'trinkspruch', rating: 1 + rng.int(5) }
+        break
+      default:
+        continue
+    }
     setTimeout(() => {
       // Too late is fine: the engines closed it first.
-      api.respond(bot, event.id, { kind: 'prosit' }).catch(() => {})
-    }, rng.float(400, 4000))
+      api.respond(bot, event.id, response).catch(() => {})
+    }, delay)
   }
 }
 
-/** Runs the six engines and the toasting bots until `done` says so. */
+/** Runs the six engines and the answering bots until `done` says so. */
 async function runNight(done: (events: EventRow[]) => boolean, sleeper: (event: EventRow) => Identity | null) {
   const rng = createRng(1887)
   for (;;) {
     await Promise.all([...bots, null].map(engineTick))
     const events = await api.getEvents()
-    for (const event of events) toast(event, rng, sleeper(event))
+    for (const event of events) answer(event, rng, sleeper(event))
     if (done(events)) return events
     await sleep(400)
   }
@@ -415,6 +449,94 @@ await step('answers close at the deadline, before the event is resolved', async 
   assert.deepEqual((await api.getEvents())[1].result, { kind: 'regel' })
 })
 
+const by = (a: { memberId: string }, b: { memberId: string }) => (a.memberId < b.memberId ? -1 : 1)
+
+/** The points and Strafen the database holds for one event must be what resolve() handed over. */
+async function assertAwards(eventId: string, expected: Resolution) {
+  const strafen = (await api.getStrafen()).filter((s) => s.eventId === eventId)
+  const points = (await api.getPoints()).filter((p) => p.eventId === eventId)
+  assert.deepEqual(strafen.map((s) => ({ memberId: s.memberId, reason: s.reason })).sort(by), [...expected.strafen].sort(by))
+  assert.deepEqual(
+    points.map((p) => ({ memberId: p.memberId, amount: p.amount, reason: p.reason })).sort(by),
+    [...expected.points].sort(by),
+  )
+}
+
+await step('Duell, Abstimmung, Schätzfrage and Trinkspruch pass the referee', async () => {
+  const ids = bots.map((b) => b.memberId)
+  const [a, b, c, d, e] = bots
+  const cases: { payload: EventPayload; answers: [Identity, EventResponse][] }[] = [
+    {
+      payload: { kind: 'duell', a: a.memberId, b: b.memberId, drawAfterMs: 20_000 },
+      answers: [
+        [c, { kind: 'duell_pick', pick: b.memberId }],
+        [d, { kind: 'duell_pick', pick: a.memberId }],
+        [a, { kind: 'duell', tapMs: 20_450 }],
+        [b, { kind: 'duell', tapMs: 20_300 }],
+      ],
+    },
+    {
+      payload: { kind: 'abstimmung', question: 'Vem i klubben vet alltid bäst?', title: 'Klubbens Besserwisser' },
+      answers: [a, b, d].map((bot): [Identity, EventResponse] => [bot, { kind: 'abstimmung', vote: c.memberId }]),
+    },
+    {
+      payload: { kind: 'schatzfrage', question: 'Vilket år?', answer: 1516, unit: 'år' },
+      answers: [
+        [a, { kind: 'schatzfrage', guess: 1500 }],
+        [b, { kind: 'schatzfrage', guess: 1520.5 }],
+        [c, { kind: 'schatzfrage', guess: 1900 }],
+      ],
+    },
+    {
+      payload: { kind: 'trinkspruch', speaker: e.memberId, topic: 'Till ölet' },
+      answers: [
+        [a, { kind: 'trinkspruch', rating: 5 }],
+        [b, { kind: 'trinkspruch', rating: 4 }],
+        [c, { kind: 'trinkspruch', rating: 4 }],
+        [e, { kind: 'trinkspruch', rating: 5 }],
+      ],
+    },
+  ]
+
+  const results: Resolution[] = []
+  for (const [i, { payload, answers }] of cases.entries()) {
+    const seq = 3 + i
+    assert.equal(await api.spawnEvent(null, seq, payload, Date.now() + 60_000), true, `${payload.kind} spawns`)
+    const event = (await api.getEvents()).find((row) => row.seq === seq)
+    assert.ok(event, `${payload.kind} is stored`)
+    assert.deepEqual(event.payload, payload, `${payload.kind} payload survives the round trip`)
+    for (const [who, response] of answers) assert.equal(await api.respond(who, event.id, response), true)
+
+    const expected = resolve(payload, await api.getResponses(event.id), ids)
+    assert.equal(await api.resolveEvent(null, event.id, expected), true)
+    const done = (await api.getEvents()).find((row) => row.seq === seq)
+    assert.deepEqual(done?.result, expected.result, `${payload.kind} result survives the round trip`)
+    await assertAwards(event.id, expected)
+    results.push(expected)
+  }
+
+  const [duell, vote, guess, toast] = results
+  assert.deepEqual(duell.result, {
+    kind: 'duell',
+    winner: b.memberId,
+    loser: a.memberId,
+    reactions: { [a.memberId]: 450, [b.memberId]: 300 },
+    falseStarts: [],
+  })
+  assert.deepEqual(duell.points.map((p) => p.memberId), [b.memberId, c.memberId])
+  assert.deepEqual(vote.result, { kind: 'abstimmung', winners: [c.memberId], votes: { [c.memberId]: 3 } })
+  assert.ok(guess.result.kind === 'schatzfrage')
+  assert.equal(guess.result.closest, b.memberId)
+  assert.equal(guess.result.furthest, c.memberId)
+  // The speaker's own five does not count.
+  assert.deepEqual(toast.result, {
+    kind: 'trinkspruch',
+    average: 4.3,
+    ratings: { [a.memberId]: 5, [b.memberId]: 4, [c.memberId]: 4 },
+  })
+  assert.deepEqual(toast.points, [{ memberId: e.memberId, amount: 4, reason: 'Betyg för Trinkspruch' }])
+})
+
 await step('the night ends and the log closes', async () => {
   const [a, b] = await Promise.all([api.endNight(bots[0]), api.endNight(bots[1])])
   assert.equal(a.status, 'ended')
@@ -426,8 +548,8 @@ await step('the night ends and the log closes', async () => {
   await expectCode(api.giveStrafe(bots[0], bots[1].memberId, 'För sent'), 'night_ended')
   await expectCode(api.startNight(bots[0]), 'night_ended')
   await expectCode(api.join('Sen gäst', MEMBER_COLOURS[6]), 'night_ended')
-  assert.equal(await api.spawnEvent(bots[0], 3, { kind: 'prosit' }, Date.now() + 60_000), false)
-  assert.equal((await api.getEvents()).length, 2)
+  assert.equal(await api.spawnEvent(bots[0], 7, { kind: 'prosit' }, Date.now() + 60_000), false)
+  assert.equal((await api.getEvents()).length, 6)
   assert.ok(eventId)
 })
 
@@ -445,7 +567,7 @@ await step('reset keeps the members, wipe removes them', async () => {
   assert.deepEqual(await api.getPoints(), [])
 })
 
-const NIGHT_EVENTS = 4
+const NIGHT_EVENTS = 6
 await step(`six engines run a night of ${NIGHT_EVENTS} events: each spawns once and resolves once`, async () => {
   clockOffset = (await api.serverNow()) - Date.now()
   await api.setInterval(bots[0], 0.5)
@@ -465,37 +587,30 @@ await step(`six engines run a night of ${NIGHT_EVENTS} events: each spawns once 
 
   assert.deepEqual(events.map((e) => e.seq), events.map((_, i) => i + 1), 'seqs run from 1 without a gap')
   const memberIds = bots.map((b) => b.memberId)
-  const strafen = await api.getStrafen()
-  const points = await api.getPoints()
   let prev = ''
   for (const event of events) {
     assert.equal(wins.spawn.get(event.seq), 1, `seq ${event.seq} spawned once`)
     assert.notEqual(event.kind, prev, 'no kind twice in a row')
     prev = event.kind
-    assert.deepEqual(event.payload, planEvent(seed, event.seq, 0.5).payload, `seq ${event.seq} is the scheduled event`)
+    assert.deepEqual(event.payload, planEvent(seed, event.seq, 0.5, memberIds).payload, `seq ${event.seq} is the scheduled event`)
     if (event.status !== 'done') continue
 
     assert.equal(wins.resolve.get(event.id), 1, `seq ${event.seq} resolved once`)
     assert.ok(event.resolvedAt !== null)
     const expected = resolve(event.payload, await api.getResponses(event.id), memberIds)
     assert.deepEqual(event.result, expected.result)
-    const by = (a: { memberId: string }, b: { memberId: string }) => (a.memberId < b.memberId ? -1 : 1)
-    assert.deepEqual(
-      strafen.filter((s) => s.eventId === event.id).map((s) => ({ memberId: s.memberId, reason: s.reason })).sort(by),
-      [...expected.strafen].sort(by),
-    )
-    assert.deepEqual(
-      points.filter((p) => p.eventId === event.id).map((p) => ({ memberId: p.memberId, amount: p.amount, reason: p.reason })),
-      expected.points,
-    )
-    console.log(`      seq ${event.seq} ${event.kind}: ${expected.strafen.length} Strafen`)
+    await assertAwards(event.id, expected)
+    console.log(`      seq ${event.seq} ${event.kind}: ${expected.points.length} points, ${expected.strafen.length} Strafen`)
   }
 
-  const slept = events.find((e) => e.id === firstProsit)
-  assert.ok(slept?.result?.kind === 'prosit', 'a PROSIT! was played')
-  assert.deepEqual(slept.result.missed, [bots[4].memberId])
-  assert.equal(slept.result.order.length, 4)
-  assert.ok(slept.resolvedAt! >= slept.endsAt, 'a missed PROSIT! runs to its deadline')
+  // Six kinds are drawn at random, so a short night may hold no PROSIT! at all.
+  const slept = events.find((e) => e.id === firstProsit && e.status === 'done')
+  if (slept) {
+    assert.ok(slept.result?.kind === 'prosit')
+    assert.deepEqual(slept.result.missed, [bots[4].memberId])
+    assert.equal(slept.result.order.length, 4)
+    assert.ok(slept.resolvedAt! >= slept.endsAt, 'a missed PROSIT! runs to its deadline')
+  }
   const quick = events.find((e) => e.kind === 'prosit' && e.status === 'done' && e.id !== firstProsit)
   if (quick) assert.ok(quick.resolvedAt! < quick.endsAt, 'a PROSIT! everyone answers closes early')
 })

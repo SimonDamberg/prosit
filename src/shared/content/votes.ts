@@ -1,0 +1,40 @@
+// The Abstimmung pool. The club votes on a member; the winner holds `title` on the TV until the
+// next vote.
+
+export interface Vote {
+  question: string
+  title: string
+}
+
+export const VOTES: readonly Vote[] = [
+  { question: 'Vem i klubben skulle i smyg beställa en alkoholfri?', title: 'Klubbens Nykterist' },
+  { question: 'Vem i klubben somnar först i kväll?', title: 'Klubbens Schlafmütze' },
+  { question: 'Vem i klubben håller de längsta och sämsta talen?', title: 'Klubbens Festredner' },
+  { question: 'Vem i klubben har i hemlighet druckit havremjölk?', title: 'Klubbens Hafermilchtrinker' },
+  { question: 'Vem i klubben skulle anlända till ett möte på elsparkcykel?', title: 'Klubbens Rollerfahrer' },
+  { question: 'Vem i klubben vet alltid bäst?', title: 'Klubbens Besserwisser' },
+  { question: 'Vem i klubben skulle klara sig sämst utan sin telefon?', title: 'Klubbens Modernist' },
+  { question: 'Vem i klubben är mest lik en pensionerad överste?', title: 'Herr Oberst' },
+  { question: 'Vem i klubben skulle skriva en insändare om ungdomen av i dag?', title: 'Klubbens Leserbriefschreiber' },
+  { question: 'Vem i klubben spiller mest öl per kväll?', title: 'Klubbens Bierverschütter' },
+  { question: 'Vem i klubben skulle överleva längst på enbart Brezel?', title: 'Klubbens Brezelkönig' },
+  { question: 'Vem i klubben sjunger högst och falskast?', title: 'Klubbens Kammersänger' },
+  { question: 'Vem i klubben borde aldrig mer få ansvara för kassan?', title: 'Klubbens Schatzmeister a.D.' },
+  { question: 'Vem i klubben kommer alltid för sent?', title: 'Klubbens Spätankömmling' },
+  { question: 'Vem i klubben skulle bära Lederhosen till vardags?', title: 'Klubbens Lederhosenträger' },
+  { question: 'Vem i klubben berättar samma historia för tionde gången?', title: 'Klubbens Geschichtenerzähler' },
+  { question: 'Vem i klubben skulle fuska i den här omröstningen?', title: 'Klubbens Wahlfälscher' },
+  { question: 'Vem i klubben klagar mest på priserna?', title: 'Klubbens Sparfuchs' },
+  { question: 'Vem i klubben går hem först?', title: 'Klubbens Frühaufbrecher' },
+  { question: 'Vem i klubben har kvällens mest tvivelaktiga klädsel?', title: 'Klubbens Modeopfer' },
+  { question: 'Vem i klubben skulle bli en usel Herr Präsident?', title: 'Klubbens Gegenpräsident' },
+  { question: 'Vem i klubben blir mest högljudd efter två Maß?', title: 'Klubbens Lautsprecher' },
+  { question: 'Vem i klubben skulle beställa in en sallad?', title: 'Klubbens Salatesser' },
+  { question: 'Vem i klubben har störst respekt för stadgarna?', title: 'Klubbens Paragraphenreiter' },
+  { question: 'Vem i klubben skulle gå vilse på väg till toaletten?', title: 'Klubbens Pfadfinder' },
+  { question: 'Vem i klubben dansar sämst på bordet?', title: 'Klubbens Tanzbär' },
+  { question: 'Vem i klubben skulle föreslå ett möte över videolänk?', title: 'Klubbens Digitalisierer' },
+  { question: 'Vem i klubben har kvällens ståtligaste hållning?', title: 'Klubbens Ehrenmann' },
+  { question: 'Vem i klubben tål minst Schnaps?', title: 'Klubbens Leichtgewicht' },
+  { question: 'Vem i klubben mår sämst i morgon?', title: 'Klubbens Katerkönig' },
+]

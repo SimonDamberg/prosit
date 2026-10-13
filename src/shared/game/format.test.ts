@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { fmtClock, fmtInt, fmtLitres } from './format'
+import { fmtClock, fmtInt, fmtLitres, fmtNumber, secondsLeft } from './format'
 
 describe('fmtInt', () => {
   it('groups thousands with a no-break space', () => {
@@ -32,5 +32,22 @@ describe('fmtLitres', () => {
   it('can drop the decimals and never goes negative', () => {
     expect(fmtLitres(260, 0)).toBe('3')
     expect(fmtLitres(-50)).toBe('0,0')
+  })
+})
+
+describe('fmtNumber', () => {
+  it('uses a decimal comma and leaves years alone', () => {
+    expect(fmtNumber(3.8)).toBe('3,8')
+    expect(fmtNumber(1516)).toBe('1516')
+    expect(fmtNumber(-0.5)).toBe('-0,5')
+  })
+})
+
+describe('secondsLeft', () => {
+  it('rounds up and stops at zero', () => {
+    expect(secondsLeft(10_000, 0)).toBe(10)
+    expect(secondsLeft(10_000, 9001)).toBe(1)
+    expect(secondsLeft(10_000, 10_000)).toBe(0)
+    expect(secondsLeft(10_000, 99_000)).toBe(0)
   })
 })

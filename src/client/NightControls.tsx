@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { getApi } from '../lib/supabase'
 import type { Identity, NightRow } from '../lib/types'
 import { NIGHT } from '../shared/content/events'
+import { EVENT_KINDS, type EventKind } from '../shared/game/types'
 import { Button, toast } from '../ui'
 import { reportError } from './report'
 
@@ -13,8 +14,8 @@ const fmtMinutes = (minutes: number) => String(minutes).replace('.', ',')
 interface NightControlsProps {
   night: NightRow
   identity: Identity
-  /** Dev only: open the next event now. */
-  onTrigger: () => Promise<void>
+  /** Dev only: open the next event now, as this kind if given. */
+  onTrigger: (kind?: EventKind) => Promise<void>
 }
 
 /** Any member starts the night and sets how often events strike. There is no game master. */
@@ -63,9 +64,18 @@ export function NightControls({ night, identity, onTrigger }: NightControlsProps
         </Button>
       </div>
       {import.meta.env.DEV && (
-        <Button variant="ghost" block disabled={busy} onClick={() => run(onTrigger)}>
-          {NIGHT.devTrigger}
-        </Button>
+        <>
+          <Button variant="ghost" block disabled={busy} onClick={() => run(() => onTrigger())}>
+            {NIGHT.devTrigger}
+          </Button>
+          <div className="grid grid-cols-3 gap-2">
+            {EVENT_KINDS.map((kind) => (
+              <Button key={kind} variant="ghost" disabled={busy} onClick={() => run(() => onTrigger(kind))} className="px-1 text-base">
+                {NIGHT.devKinds[kind]}
+              </Button>
+            ))}
+          </div>
+        </>
       )}
     </section>
   )

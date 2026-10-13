@@ -8,12 +8,11 @@ import { ruleBreach } from '../shared/content/rules'
 import { BRAND } from '../shared/content/ui'
 import { placeOf, tallyDrinks } from '../shared/game/drinks'
 import { fmtLitres } from '../shared/game/format'
-import { onStage } from '../shared/game/schedule'
-import { DRINK_KINDS } from '../shared/game/types'
+import { DRINK_KINDS, type EventKind } from '../shared/game/types'
 import { Button, ConnectionBadge, LoadingScreen } from '../ui'
 import { DrinkPad } from './DrinkPad'
+import { EventTakeover } from './EventTakeover'
 import { NightControls } from './NightControls'
-import { PrositTakeover } from './PrositTakeover'
 import { RuleCard } from './RuleCard'
 import { StrafeSheet } from './StrafeSheet'
 
@@ -24,8 +23,8 @@ interface HomeScreenProps {
   night: NightRow
   events: readonly EventRow[]
   connection: ConnectionStatus
-  /** Dev only: open the next event now. */
-  onTrigger: () => Promise<void>
+  /** Dev only: open the next event now, as this kind if given. */
+  onTrigger: (kind?: EventKind) => Promise<void>
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -61,7 +60,6 @@ export function HomeScreen({ me, identity, members, night, events, connection, o
   const rules = events.flatMap((e) =>
     e.status === 'live' && e.payload.kind === 'regel' ? [{ id: e.id, rule: e.payload.rule, endsAt: e.endsAt }] : [],
   )
-  const prosit = onStage(events, 'prosit', now)
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-4 pb-24">
@@ -146,7 +144,7 @@ export function HomeScreen({ me, identity, members, night, events, connection, o
           initialReason={strafe.reason}
         />
       )}
-      {prosit && !ended && <PrositTakeover key={prosit.id} event={prosit} identity={identity} members={members} now={now} />}
+      {!ended && <EventTakeover events={events} identity={identity} members={members} now={now} />}
     </main>
   )
 }

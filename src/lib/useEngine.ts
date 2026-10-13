@@ -7,6 +7,7 @@ import { resolve } from '../shared/game/resolve'
 import { ANSWERED_KINDS, nextAction } from '../shared/game/schedule'
 import { useServerClock } from './hooks'
 import { getApi } from './supabase'
+import type { EventKind } from '../shared/game/types'
 import type { EventRow, Identity, MemberRow, NightRow } from './types'
 
 const TICK_MS = 1500
@@ -18,8 +19,8 @@ export interface EngineInput {
 }
 
 export interface Engine {
-  /** Opens the next event without waiting for its time. For the dev button. */
-  triggerNow: () => Promise<void>
+  /** Opens the next event without waiting for its time, as `kind` if given. For the dev buttons. */
+  triggerNow: (kind?: EventKind) => Promise<void>
 }
 
 /**
@@ -34,7 +35,7 @@ export function useEngine(who: Identity | null, input: EngineInput, enabled = tr
   })
   const busy = useRef(false)
 
-  const tick = useCallback(async (force = false) => {
+  const tick = useCallback(async (force: boolean | EventKind = false) => {
     const { who, input, now } = latest.current
     const { night, events } = input
     let members = input.members
@@ -71,6 +72,6 @@ export function useEngine(who: Identity | null, input: EngineInput, enabled = tr
     return () => clearInterval(timer)
   }, [enabled, tick])
 
-  const triggerNow = useCallback(() => tick(true), [tick])
+  const triggerNow = useCallback((kind?: EventKind) => tick(kind ?? true), [tick])
   return { triggerNow }
 }

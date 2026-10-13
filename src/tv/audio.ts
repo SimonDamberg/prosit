@@ -53,3 +53,14 @@ export function playBell() {
     note(1760, at, 0.9, 'sine', 0.15)
   }
 }
+
+/** Duell, Abstimmung, Schätzfrage, Trinkspruch: a rising call to attention. */
+export function playCall() {
+  for (const [i, freq] of [392, 523, 659, 784].entries()) note(freq, i * 0.16, i === 3 ? 0.7 : 0.18, 'sawtooth', 0.2)
+}
+
+/** The draw in a Duell: one sharp crack. */
+export function playDraw() {
+  note(1320, 0, 0.35, 'square', 0.3)
+  note(660, 0, 0.5, 'square', 0.2)
+}
