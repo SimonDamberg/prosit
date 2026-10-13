@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Components in src/ui use these, never raw Tailwind colours. Dark only.
+ *
+ * Placeholder palette: the token names are inherited from the Rally75 components this project
+ * started from, and the values are a first Bavarian guess. Stage 5 owns the real design system and
+ * may rename tokens (rename in src/ui at the same time).
+ */
+@theme {
+  /* Surfaces: page, deepest page, lit top of the page gradient, panel, panel highlight. */
+  --color-night: #0a1f44;
+  --color-night-deep: #06122b;
+  --color-night-glow: #16408a;
+  --color-tote: #14407f;
+  --color-tote-hi: #5aa2f0;
+  /* Beer amber: primary buttons, big numbers, titles. */
+  --color-plate: #f5b324;
+  --color-plate-shade: #a06a00;
+  /* Accent for events and takeovers. */
+  --color-sleaze: #f3ead2;
+  --color-sleaze-shade: #9c8f6a;
+  --color-sleaze-ink: #2a1a08;
+  /* Good news and bad news (a Strafe, an error). */
+  --color-cash: #7ddc8a;
+  --color-drift: #e5482f;
+  --color-drift-shade: #8c2413;
+  --color-void: #50607f;
+  --color-ink: #f6f3e8;
+  --color-ink-dim: #a9b8d6;
+
+  --font-display: "Big Shoulders Display Variable", "Arial Narrow", "Helvetica Neue", sans-serif;
+  --font-body: "Archivo Variable", "Helvetica Neue", Arial, sans-serif;
+
+  /* TV sizes, readable across a room. */
+  --text-tv-sm: 1.75rem;
+  --text-tv-sm--line-height: 1.15;
+  --text-tv-md: 2.5rem;
+  --text-tv-md--line-height: 1.05;
+  --text-tv-lg: 4rem;
+  --text-tv-lg--line-height: 1;
+  --text-tv-xl: 6rem;
+  --text-tv-xl--line-height: 0.95;
+
+  --animate-pulse-live: pulse-live 1.1s ease-in-out infinite;
+  --animate-toast-in: toast-in 0.3s ease-out;
+  --animate-pop-in: pop-in 0.22s ease-out;
+
+  @keyframes pulse-live {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.35; transform: scale(0.7); }
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(0.75rem); }
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: translateY(1rem) scale(0.96); }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-night-deep);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    min-height: 100dvh;
+    background: radial-gradient(120% 70% at 50% 0%, var(--color-night-glow) 0%, var(--color-night) 55%, var(--color-night-deep) 100%) fixed;
+    color: var(--color-ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-tote-hi);
+    outline-offset: 2px;
+  }
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+  /* Longhand: ::backdrop cannot read a custom property on older Safari. */
+  dialog::backdrop {
+    background: rgb(6 18 43 / 0.86);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
