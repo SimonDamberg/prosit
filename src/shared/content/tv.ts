@@ -17,6 +17,7 @@ export const TV_BARS = {
   // Capital: a lowercase l reads as a one next to the digits.
   litres: 'L',
   noDrinks: 'Torrlagd',
+  points: (n: number) => `${n} p`,
 } as const
 
 export const TV_PACE = {

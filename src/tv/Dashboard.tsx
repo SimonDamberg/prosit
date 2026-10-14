@@ -5,6 +5,7 @@ import type {
   EventRow,
   MemberRow,
   NightRow,
+  PointsRow,
   StrafeRow,
 } from "../lib/types";
 import { ABSTIMMUNG, REGEL, TV_STAGE } from "../shared/content/events";
@@ -16,7 +17,9 @@ import {
   TV_TOTALS,
 } from "../shared/content/tv";
 import { BRAND } from "../shared/content/ui";
+import { computeAchievements } from "../shared/game/achievements";
 import { strafeTally, sumTallies, tallyDrinks } from "../shared/game/drinks";
+import { stageEvent } from "../shared/game/schedule";
 import { fmtClock, fmtLitres } from "../shared/game/format";
 import {
   Crest,
@@ -25,6 +28,7 @@ import {
   Shield,
   toast,
 } from "../ui";
+import { AchievementPopup } from "./AchievementPopup";
 import { play } from "./audio";
 import { EventStage } from "./EventStage";
 import { MemberBars } from "./MemberBars";
@@ -37,6 +41,7 @@ interface DashboardProps {
   members: readonly MemberRow[];
   drinks: readonly DrinkRow[];
   strafen: readonly StrafeRow[];
+  points: readonly PointsRow[];
   events: readonly EventRow[];
 }
 
@@ -110,6 +115,7 @@ export function Dashboard({
   members,
   drinks,
   strafen,
+  points,
   events,
 }: DashboardProps) {
   const now = useServerNow(500);
@@ -125,6 +131,22 @@ export function Dashboard({
   );
   const total = useMemo(() => sumTallies(tallies), [tallies]);
   const strafeCounts = useMemo(() => strafeTally(strafen), [strafen]);
+  const pointCounts = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const p of points) out[p.memberId] = (out[p.memberId] ?? 0) + p.amount;
+    return out;
+  }, [points]);
+  const achievements = useMemo(
+    () =>
+      computeAchievements({
+        memberIds: members.map((m) => m.id),
+        drinks,
+        strafen,
+        points,
+        events,
+      }),
+    [members, drinks, strafen, points, events],
+  );
   const ended = night.status === "ended";
   const joinUrl = window.location.origin;
   const rules = events.filter(
@@ -145,6 +167,13 @@ export function Dashboard({
   return (
     <main className="relative flex h-full flex-col gap-6 overflow-hidden px-10 pb-8">
       {!ended && <EventStage events={events} members={members} now={now} />}
+      {!ended && (
+        <AchievementPopup
+          achievements={achievements}
+          members={members}
+          held={stageEvent(events, now) !== undefined}
+        />
+      )}
       {/* The tablecloth trim: the one loud band on the screen. */}
       <div className="rauten-band -mx-10 shrink-0 text-[2.75rem]" />
       <header className="flex items-center gap-8">
@@ -223,6 +252,7 @@ export function Dashboard({
               members={members}
               tallies={tallies}
               strafeCounts={strafeCounts}
+              pointCounts={pointCounts}
             />
             <div className="grid min-h-0 grid-rows-2 gap-6">
               <PaceTimeline

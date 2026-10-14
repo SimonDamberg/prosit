@@ -3,7 +3,7 @@ import { getApi } from '../lib/supabase'
 import type { Identity, NightRow } from '../lib/types'
 import { NIGHT } from '../shared/content/events'
 import { EVENT_KINDS, type EventKind } from '../shared/game/types'
-import { Button, toast } from '../ui'
+import { Button, Modal, toast } from '../ui'
 import { reportError } from './report'
 
 // Minutes between events that a member can step through. The short ones are for trying it out.
@@ -21,6 +21,7 @@ interface NightControlsProps {
 /** Any member starts the night and sets how often events strike. There is no game master. */
 export function NightControls({ night, identity, onTrigger }: NightControlsProps) {
   const [busy, setBusy] = useState(false)
+  const [confirmEnd, setConfirmEnd] = useState(false)
 
   const run = async (call: () => Promise<unknown>, done?: string) => {
     setBusy(true)
@@ -63,6 +64,31 @@ export function NightControls({ night, identity, onTrigger }: NightControlsProps
           {NIGHT.slower}
         </Button>
       </div>
+      <Button variant="danger" block disabled={busy} onClick={() => setConfirmEnd(true)}>
+        {NIGHT.end}
+      </Button>
+      <Modal
+        open={confirmEnd}
+        onClose={() => setConfirmEnd(false)}
+        title={NIGHT.endTitle}
+        tone="danger"
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setConfirmEnd(false)}>
+              {NIGHT.endCancel}
+            </Button>
+            <Button
+              variant="danger"
+              loading={busy}
+              onClick={() => run(() => getApi().endNight(identity)).then(() => setConfirmEnd(false))}
+            >
+              {NIGHT.endConfirm}
+            </Button>
+          </>
+        }
+      >
+        <p>{NIGHT.endText}</p>
+      </Modal>
       {import.meta.env.DEV && (
         <>
           <Button variant="ghost" block disabled={busy} onClick={() => run(() => onTrigger())}>

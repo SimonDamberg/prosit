@@ -149,6 +149,25 @@ export const CUES = {
   ],
   /** One second gone, near the end of a PROSIT!. */
   tick: [note('knock', 1100, 0, 0.06, 0.8)],
+  /** Before a name at the ceremony: the snare rolls up to a cymbal-like crack. Lasts as long as the drum roll on screen. */
+  trommelwirbel: [...roll(0, 3.2, 0.9), note('drum', 70, 3.25, 0.4), note('snare', 3400, 3.25, 0.35)],
+  /** The grand prize: a full fanfare in B flat, the herald and the whole band. */
+  fanfare: [
+    note('brass', 'F4', 0, 0.16),
+    note('brass', 'F4', 0.18, 0.16),
+    note('brass', 'F4', 0.36, 0.16),
+    note('brass', 'Bb4', 0.54, 0.5),
+    note('brass', 'A4', 1.1, 0.16),
+    note('brass', 'Bb4', 1.28, 0.16),
+    note('brass', 'C5', 1.46, 0.3),
+    ...chord('brass', ['Bb3', 'D4', 'F4', 'Bb4', 'D5'], 1.82, 1.6),
+    note('tuba', 'Bb2', 1.82, 1.6),
+    note('drum', 60, 1.82, 0.5),
+    ...roll(1.82, 3.2, 0.5),
+    note('bell', 'Bb4', 1.82, 2, 0.6),
+  ],
+  /** An achievement: a little brass rise and a bright bell, not loud enough to stop a conversation. */
+  medaille: [note('brass', 'C5', 0, 0.12, 0.7), note('brass', 'E5', 0.13, 0.12, 0.7), ...chord('brass', ['G4', 'C5', 'E5'], 0.26, 0.5, 0.7), note('bell', 'C6', 0.26, 1.2, 0.5)],
   /** The tap that unlocks the sound answers with a bell and two notes, so it is heard to work. */
   unlock: [note('bell', 'A4', 0, 1.2, 0.7), note('brass', 'C4', 0.05, 0.14), ...chord('brass', ['C4', 'G4'], 0.22, 0.5)],
 } as const satisfies Record<string, Cue>

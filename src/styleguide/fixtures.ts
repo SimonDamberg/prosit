@@ -1,6 +1,8 @@
 // Made-up members and events for the styleguide, so every stage can be looked at without a
 // database or a running night. The ids are valid UUIDs because the stages still ask for answers.
-import type { EventRow, MemberRow } from '../lib/types'
+import type { DrinkRow, EventRow, MemberRow, NightRow, PointsRow, StrafeRow } from '../lib/types'
+import type { Achievement } from '../shared/game/achievements'
+import { computeAwards, FINALE_AWARD_MS, FINALE_INTRO_MS, FINALE_REVEAL_MS, finaleLength } from '../shared/game/awards'
 import { MEMBER_COLOURS } from '../shared/game/members'
 import type { EventPayload, EventResult } from '../shared/game/types'
 
@@ -75,3 +77,61 @@ export function sceneEvent(name: SceneName, at: number): EventRow {
   if (!scene.result) return { ...base, startedAt: at, endsAt: at + scene.seconds * 1000, status: 'live', result: null, resolvedAt: null }
   return { ...base, startedAt: at - scene.seconds * 1000, endsAt: at, status: 'done', result: scene.result, resolvedAt: at }
 }
+
+// The finale: a short night's log for the five, so the ceremony has something to read out.
+
+const row = (n: number) => ({ id: id(500 + n), at: 0 })
+const DRINKS: DrinkRow[] = (
+  [
+    [jesper, 'mass'], [jesper, 'mass'], [jesper, 'ol'],
+    [axel, 'ol'], [axel, 'schnaps'], [axel, 'schnaps'], [axel, 'schnaps'],
+    [erik, 'ol'], [erik, 'wasser'], [erik, 'wasser'],
+    [simon, 'mass'], [simon, 'ol'], [simon, 'ol'],
+    [palm, 'ol'],
+  ] as const
+).map(([memberId, kind], i) => ({ ...row(i), memberId, kind }))
+
+const STRAFEN: StrafeRow[] = [
+  { ...row(20), memberId: axel, givenBy: simon, reason: 'Nämnde arbetet', eventId: null },
+  { ...row(21), memberId: axel, givenBy: simon, reason: 'Havremjölk', eventId: null },
+  { ...row(22), memberId: palm, givenBy: null, reason: 'Sist i skålen', eventId: null },
+]
+
+const POINTS: PointsRow[] = [
+  { ...row(30), memberId: simon, amount: 3, reason: 'Först i skålen', eventId: null },
+  { ...row(31), memberId: erik, amount: 4, reason: 'Trinkspruch', eventId: null },
+  { ...row(32), memberId: simon, amount: 3, reason: 'Duell', eventId: null },
+]
+
+/** Finale scenes: how long after the end of the night each one is looked at. */
+export const FINALE_SCENES = {
+  'finale-intro': 0,
+  'finale-drumroll': FINALE_INTRO_MS + 1000,
+  'finale-award': FINALE_INTRO_MS + FINALE_REVEAL_MS + 500,
+  'finale-grand': 0,
+  'finale-standings': 0,
+} as const
+export type FinaleSceneName = keyof typeof FINALE_SCENES
+export const FINALE_SCENE_NAMES = Object.keys(FINALE_SCENES) as FinaleSceneName[]
+
+/** The log of the finale fixture and when the night ended, for a scene looked at `at`. */
+export function finaleFixture(name: FinaleSceneName, at: number) {
+  const events = SCENE_NAMES.filter((s) => 'result' in SCENES[s]).map((s) => sceneEvent(s, 0))
+  const log = { drinks: DRINKS, strafen: STRAFEN, points: POINTS, events }
+  const count = computeAwards({ ...log, memberIds: MEMBERS.map((m) => m.id) }).length
+  const offset =
+    name === 'finale-grand'
+      ? FINALE_INTRO_MS + (count - 1) * FINALE_AWARD_MS + FINALE_REVEAL_MS + 500
+      : name === 'finale-standings'
+        ? finaleLength(count) + 500
+        : FINALE_SCENES[name]
+  const night: NightRow = { status: 'ended', seed: 1, startedAt: 0, intervalMin: 12, endedAt: at - offset }
+  return { ...log, night }
+}
+
+/** Achievements to pop up one after the other. */
+export const ACHIEVEMENT_FIXTURE: Achievement[] = [
+  { id: `anstich:${jesper}`, key: 'anstich', memberId: jesper, at: 1 },
+  { id: `wasser:${erik}`, key: 'wasser', memberId: erik, at: 2 },
+  { id: `hattrick:${axel}`, key: 'hattrick', memberId: axel, at: 3 },
+]

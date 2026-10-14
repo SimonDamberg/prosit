@@ -13,10 +13,11 @@ interface MemberBarsProps {
   members: readonly MemberRow[]
   tallies: readonly Tally[]
   strafeCounts: Record<string, number>
+  pointCounts: Record<string, number>
 }
 
 /** The standings: one bar per member, longest first, stacked by drink kind. */
-export function MemberBars({ members, tallies, strafeCounts }: MemberBarsProps) {
+export function MemberBars({ members, tallies, strafeCounts, pointCounts }: MemberBarsProps) {
   const ranked = rankTallies(tallies)
   const maxCl = Math.max(100, ...ranked.map((t) => t.cl))
 
@@ -27,6 +28,7 @@ export function MemberBars({ members, tallies, strafeCounts }: MemberBarsProps) 
           const member = members.find((m) => m.id === t.memberId)
           if (!member) return null
           const strafen = strafeCounts[member.id] ?? 0
+          const points = pointCounts[member.id] ?? 0
           return (
             <li key={member.id} className="flex min-h-0 flex-col gap-1.5">
               <div className="flex items-baseline gap-5">
@@ -40,6 +42,11 @@ export function MemberBars({ members, tallies, strafeCounts }: MemberBarsProps) 
                     </span>
                   ))}
                 </span>
+                {points > 0 && (
+                  <span className="rounded-md bg-koenig px-4 py-1 text-xl font-black whitespace-nowrap text-white tabular-nums">
+                    {TV_BARS.points(points)}
+                  </span>
+                )}
                 {strafen > 0 && (
                   <span className="rounded-md bg-strafe px-4 py-1 text-xl font-black whitespace-nowrap text-white tabular-nums">
                     {strafen} ⚖

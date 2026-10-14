@@ -26,6 +26,11 @@ export const NIGHT = {
   interval: (minutes: string) => `Händelse ungefär var ${minutes} minut`,
   slower: 'Glesare',
   faster: 'Tätare',
+  end: 'Avsluta kvällen',
+  endTitle: 'Avsluta kvällen?',
+  endText: 'Protokollet stängs, inga fler drycker eller Strafen förs in, och der Fernseher håller prisutdelningen. Det går inte att ångra.',
+  endConfirm: 'Ja, avsluta',
+  endCancel: 'Nein, vi fortsätter',
   devTrigger: 'Nästa händelse nu (dev)',
   devKinds: {
     prosit: 'Prosit',

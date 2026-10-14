@@ -1,13 +1,24 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useServerNow } from '../lib/hooks'
 import { BRAND } from '../shared/content/ui'
 import { measureCue, play, unlockAudio } from '../tv/audio'
+import { AchievementPopup } from '../tv/AchievementPopup'
 import { StageFrame } from '../tv/EventStage'
+import { Finale } from '../tv/Finale'
 import { MUSIC, musicState, playProsit, setStageBusy, startMusic, stopProsit } from '../tv/music'
 import { CUE_NAMES, CUES, cueLength, type CueName } from '../tv/score'
 import { Chip } from '../tv/stages/Chip'
 import { Button, ConnectionBadge, Crest, cx, Modal, Shield, toast, Toaster, type ModalTone } from '../ui'
-import { MEMBERS, SCENE_NAMES, sceneEvent, type SceneName } from './fixtures'
+import {
+  ACHIEVEMENT_FIXTURE,
+  FINALE_SCENE_NAMES,
+  finaleFixture,
+  MEMBERS,
+  SCENE_NAMES,
+  sceneEvent,
+  type FinaleSceneName,
+  type SceneName,
+} from './fixtures'
 
 // Dev only (see src/main.tsx): the design system on one page, every sound on a button and every
 // TV stage from a fixture. The labels are for whoever works on the app, not for the members, so
@@ -71,6 +82,56 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Preview({ scene, at, nonce }: { scene: SceneName; at: number; nonce: number }) {
   const now = useServerNow(250)
   return <StageFrame key={nonce} event={sceneEvent(scene, at)} members={MEMBERS} now={now} />
+}
+
+/** The ceremony on the TV, entered at the moment the scene names. */
+function FinalePreview({ scene, at }: { scene: FinaleSceneName; at: number }) {
+  const now = useServerNow(250)
+  const [fixture] = useState(() => finaleFixture(scene, at))
+  return <Finale {...fixture} members={MEMBERS} now={now} />
+}
+
+/** The achievement pop-up: the TV announces only what arrives after it loaded, so they arrive late. */
+function AchievementPreview() {
+  const [list, setList] = useState<typeof ACHIEVEMENT_FIXTURE>([])
+  useEffect(() => {
+    const timer = setTimeout(() => setList(ACHIEVEMENT_FIXTURE), 100)
+    return () => clearTimeout(timer)
+  }, [])
+  return <AchievementPopup achievements={list} members={MEMBERS} held={false} />
+}
+
+const EXTRA_SCENES = [...FINALE_SCENE_NAMES, 'achievement'] as const
+type ExtraScene = (typeof EXTRA_SCENES)[number]
+
+function ExtraPreview({ scene, at }: { scene: ExtraScene; at: number }) {
+  return scene === 'achievement' ? <AchievementPreview /> : <FinalePreview scene={scene} at={at} />
+}
+
+function FinaleScenes() {
+  const now = useServerNow(1000)
+  const [shown, setShown] = useState<{ scene: ExtraScene; at: number; nonce: number } | null>(null)
+  return (
+    <Section title="Finalen och utmärkelser">
+      <div className="flex flex-wrap gap-2">
+        {EXTRA_SCENES.map((scene) => (
+          <Button
+            key={scene}
+            variant={shown?.scene === scene ? 'primary' : 'quiet'}
+            onClick={() => setShown({ scene, at: now, nonce: (shown?.nonce ?? 0) + 1 })}
+          >
+            {scene}
+          </Button>
+        ))}
+      </div>
+      <p className="text-weste-dim">Finalen spelar vidare härifrån, med ljud om ljudet är upplåst.</p>
+      <div className="h-[540px] w-[960px] overflow-hidden border-2 border-koenig">
+        <div className="relative h-[1080px] w-[1920px] origin-top-left scale-50 bg-paper">
+          {shown && <ExtraPreview key={shown.nonce} scene={shown.scene} at={shown.at} />}
+        </div>
+      </div>
+    </Section>
+  )
 }
 
 function Stages() {
@@ -268,6 +329,13 @@ export default function StyleguideApp() {
       </div>
     )
   }
+  if (stage && (EXTRA_SCENES as readonly string[]).includes(stage)) {
+    return (
+      <div className="relative h-dvh overflow-hidden bg-paper">
+        <ExtraPreview scene={stage as ExtraScene} at={at} />
+      </div>
+    )
+  }
 
   return (
     <main className="mx-auto flex max-w-[1000px] flex-col gap-12 px-4 py-8">
@@ -343,6 +411,7 @@ export default function StyleguideApp() {
       <Sounds />
       <Music />
       <Stages />
+      <FinaleScenes />
       <Toaster />
     </main>
   )

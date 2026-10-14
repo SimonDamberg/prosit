@@ -45,6 +45,7 @@ npm run build    # tsc -b && vite build
 npm run bots -- --reset          # backend check: five fake members through every RPC, then a short
                                  # night with six racing engines, about 4 min (WIPES the night)
 npm run bots -- --reset --stay   # then keep them drinking and answering events, to watch /tv
+                                 # (add --end-after 10 to end the night and see the finale)
 npx supabase start               # local stack (Docker); `npx supabase db reset` reapplies the migrations
 ```
 
@@ -123,6 +124,23 @@ the engine as nobody (`spawn_event` and `resolve_event` take a null member; noth
   that showed the draw, so a clock offset cancels out; a tap before `drawAfterMs` is a false start.
 - `events.payload`, `events.result` and `responses.payload` hold the `EventPayload`,
   `EventResult` and `EventResponse` unions. They must survive a JSON round trip.
+
+## Finale and achievements (Stage 6)
+
+- `computeAwards(log)` in `src/shared/game/awards.ts` (pure): the night's log -> the awards, in
+  ceremony order with `praesident` (most points) last. Ties share an award; an award nobody
+  earned is skipped; nothing after `night.endedAt` counts. `finaleStep(endedAt, count, now)`
+  times the ceremony on server time (intro, 15 s per award with a drum roll, then the standings).
+- `computeAchievements(log)` in `achievements.ts` (pure): each member earns each achievement once,
+  at the time of the row that earned it. Nothing is stored: the TV announces what is new since it
+  loaded (`src/tv/AchievementPopup.tsx`), one at a time, held while an event has the stage.
+- A new award or achievement: a key in the list, a rule in the function, copy in
+  `src/shared/content/awards.ts` or `achievements.ts`, and a test.
+- `src/tv/Finale.tsx` replaces the dashboard once the night is `ended`. The phone shows
+  "Dina utmärkelser". "Avsluta kvällen" lives in `NightControls`, "Ny kväll" (reset, optionally
+  with wipe) in `ResetPanel`.
+- PWA: `public/manifest.webmanifest` and the icons in `public/`. No service worker (no offline mode).
+- `docs/PARTY_DAY.md` is the checklist for the night.
 
 ## Design system
 

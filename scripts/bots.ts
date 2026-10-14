@@ -4,6 +4,7 @@
 //   npm run bots -- --reset          run the checks and leave an empty night
 //   npm run bots -- --reset --stay   then keep five bots drinking and answering events, to watch
 //                                    /tv (Ctrl+C stops)
+//   ... --stay --end-after 10        and end the night after 10 minutes, so /tv runs the finale
 //
 // The engine step runs a real short night (about four minutes): six engines race on every event.
 //
@@ -18,7 +19,9 @@ import { PrositError } from '../src/lib/errors'
 import type { EventRow, Identity } from '../src/lib/types'
 import type { ErrorCode } from '../src/shared/content/errors'
 import { STRAFE_REASONS } from '../src/shared/content/strafen'
-import { strafeTally, tallyDrinks } from '../src/shared/game/drinks'
+import { computeAchievements } from '../src/shared/game/achievements'
+import { computeAwards, type NightLog } from '../src/shared/game/awards'
+import { rankTallies, strafeTally, tallyDrinks } from '../src/shared/game/drinks'
 import { MAX_MEMBERS, MAX_NAME_LENGTH, MEMBER_COLOURS } from '../src/shared/game/members'
 import { resolve } from '../src/shared/game/resolve'
 import { createRng } from '../src/shared/game/rng'
@@ -30,6 +33,12 @@ if (!process.argv.includes('--reset')) {
   process.exit(2)
 }
 const stay = process.argv.includes('--stay')
+const endAfterArg = process.argv.indexOf('--end-after')
+const endAfterMin = endAfterArg === -1 ? null : Number(process.argv[endAfterArg + 1])
+if (endAfterMin !== null && !(endAfterMin > 0)) {
+  console.error('bots: --end-after takes minutes, e.g. --end-after 10.')
+  process.exit(2)
+}
 try {
   process.loadEnvFile('.env.local')
 } catch {
@@ -621,6 +630,34 @@ await step(`six engines run a night of ${NIGHT_EVENTS} events: each spawns once 
   if (quick) assert.ok(quick.resolvedAt! < quick.endsAt, 'a PROSIT! everyone answers closes early')
 })
 
+await step('the night ends: the finale reads the same awards on every device', async () => {
+  for (const [i, kind] of (['mass', 'ol', 'ol', 'schnaps', 'wasser', 'ol', 'mass'] as const).entries()) {
+    await api.logDrink(bots[i % 3], kind)
+  }
+  const night = await api.endNight(bots[3])
+  assert.equal(night.status, 'ended')
+  const [members, drinks, strafen, points, events] = await Promise.all([
+    api.getMembers(),
+    api.getDrinks(),
+    api.getStrafen(),
+    api.getPoints(),
+    api.getEvents(),
+  ])
+  const log: NightLog = { memberIds: members.map((m) => m.id), drinks, strafen, points, events, endedAt: night.endedAt }
+  const awards = computeAwards(log)
+  const shuffled = { ...log, drinks: [...drinks].reverse(), strafen: [...strafen].reverse(), events: [...events].reverse() }
+  assert.deepEqual(computeAwards(shuffled), awards, 'awards do not depend on row order')
+  assert.deepEqual(computeAchievements(shuffled), computeAchievements(log), 'achievements do not depend on row order')
+
+  const known = new Set(log.memberIds)
+  for (const award of awards) assert.ok(award.memberIds.every((id) => known.has(id)), `${award.key} goes to members`)
+  const top = rankTallies(tallyDrinks(drinks, log.memberIds))[0]
+  assert.ok(awards.find((a) => a.key === 'bier')?.memberIds.includes(top.memberId), 'the Bierkönig drank the most')
+  if (points.length > 0) assert.equal(awards.at(-1)?.key, 'praesident', 'the grand prize comes last')
+  assert.ok(computeAchievements(log).some((a) => a.key === 'anstich'), 'the first Maß is honoured')
+  console.log(`      ${awards.length} awards: ${awards.map((a) => a.key).join(', ')}`)
+})
+
 if (!stay) {
   await step('wipe', async () => {
     await api.resetNight(bots[2], true)
@@ -634,7 +671,12 @@ if (!stay) {
 // --stay: a slow, seeded evening so the TV has something to show. --------------------------------
 
 console.log('bots: staying. Five members drink and answer events, open /tv. Ctrl+C to stop (the data stays).')
+// The checks above ended the night; a fresh one keeps the members.
+await api.resetNight(bots[0])
 await api.setInterval(bots[0], 1)
+await api.startNight(bots[0])
+const endAt = endAfterMin === null ? Infinity : Date.now() + endAfterMin * 60_000
+if (endAfterMin !== null) console.log(`bots: the night ends in ${endAfterMin} min, then /tv runs the finale.`)
 // The engines keep the night going; now and then somebody sleeps through a PROSIT!.
 void runNight(
   () => false,
@@ -645,6 +687,12 @@ const KINDS = ['ol', 'ol', 'ol', 'ol', 'ol', 'mass', 'mass', 'schnaps', 'schnaps
 
 for (;;) {
   await sleep(rng.float(1500, 4500))
+  if (Date.now() >= endAt) {
+    await api.endNight(rng.pick(bots))
+    console.log('bots: the night is ended. The finale runs on /tv; the data stays.')
+    await db.removeAllChannels()
+    process.exit(0)
+  }
   const who = rng.pick(bots)
   const roll = rng.next()
   try {

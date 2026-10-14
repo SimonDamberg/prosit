@@ -463,3 +463,68 @@ PROSIT! event, on its own timer of about ten minutes, with a laptop on HDMI as t
 **Next:** Stage 6 (Achievements, finale, deploy, dress rehearsal). Start a fresh session with:
 
 > Read CLAUDE.md, docs/META_PLAN.md and docs/STATUS.md, then plan and execute Stage 6.
+
+## Stage 6: finale, achievements, PWA, party-day checklist (done, 2026-10-14)
+
+**Done**
+
+- **Awards** (`src/shared/game/awards.ts`, tested): eleven honours read from the log, in ceremony
+  order: Wasserträger, Schnapsdrossel, Ritter der Mäßigung, Ordnungshüter, Strafkönig,
+  Schnellste Hand im Saal, Prosit-Weltmeister, Orakel, Redner des Abends, Bierkönig, and last
+  Herr Präsident für eine Nacht (most points). Ties share; empty awards are skipped; rows after
+  `ended_at` are ignored, so an event resolved after the end cannot change the ceremony.
+- **Finale on the TV** (`src/tv/Finale.tsx`): replaces the dashboard when the night ends. An intro,
+  then one award per 15 s (a drum roll on screen and in sound, then the name in its colour, the
+  value and a citation, with a Tusch, or a fanfare and a brass flash for the grand prize), then the
+  final protocol (litres, Strafen, points, awards per member), which stays. Timed from `ended_at`
+  on server time, so a reloaded TV resumes at the right card and stays quiet for what it missed.
+  The playlist ducks during the ceremony and comes back for the standings.
+- **Achievements** (`achievements.ts`, tested): fourteen, from O'zapft is! (first Maß) and the
+  litre marks to Volltreffer (an exact Schätzfrage). The TV pops each one up in a corner with a
+  `medaille` cue, one at a time, never over an event.
+- **Points on the dashboard**: a "n p" badge per member in the standings.
+- **Phone**: "Avsluta kvällen" (with a confirm) under the interval buttons; "Klubbens förvaltning"
+  with "Ny kväll" (confirm, and "Stryk även matrikeln" for a wipe) while idle or ended; "Dina
+  utmärkelser" on the ended screen.
+- **Sound**: three new cues in `score.ts`: `trommelwirbel`, `fanfare`, `medaille`.
+- **PWA**: manifest, SVG favicon, 192/512/maskable PNG icons and an apple-touch-icon (the
+  shield on paper), linked from `index.html`. No service worker.
+- `/styleguide`: a "Finalen och utmärkelser" row (intro, drum roll, award, grand prize,
+  standings, the pop-up); `/styleguide?stage=finale-grand` etc. show one alone.
+- **Bots**: a new step ends the night and checks that awards and achievements come out the same
+  whatever order the rows arrive in; `--end-after <min>` with `--stay` ends the watched night.
+- `docs/PARTY_DAY.md`: the checklist for the day.
+- Verified: 180 tests, lint and build pass. Local stack: the bots pass all 20 steps (the finale
+  step read 9 awards from a real night). Headless Chromium, a 1920x1080 TV and two phones
+  with five bots: joining, an achievement pop-up after a phone logged a Maß, "Avsluta kvällen"
+  from a phone, and the finale's intro, drum roll and first award on the TV.
+
+**Not checked**
+
+- The browser run was stopped partway at Simon's request (the bots, Chromium and Docker were too
+  heavy for the laptop). Not seen in a browser: the grand prize card, the standings, the
+  phone's awards list and a reset with wipe from the phone. The reset and wipe RPCs are covered
+  by the bot steps; the screens are not.
+- Nobody has heard the three new cues.
+
+**Deviations from META_PLAN**
+
+- No migration. `end_night` and `reset_night` were already there.
+- Achievements are computed, not stored: an undone drink can take one back (the TV has already
+  shown it by then).
+- The copy keeps to the existing line: the club's own pomposity, no Nazi-themed jokes and none
+  at women's expense.
+
+**Open issues**
+
+- `npm run bots -- --reset` cannot recover an ended night (nobody can join it to get a token).
+  Locally: `npx supabase db reset`. On the hosted project: "Ny kväll" from a joined phone.
+- A rule announced in its first 20 s does not hold back the pop-up queue, so a pop-up may run
+  out its 6 s behind the rule's stage.
+- The main chunk is still over 500 kB (supabase-js).
+
+**Manual steps for Simon**
+
+1. Follow `docs/PARTY_DAY.md`.
+2. On the deployed site: add it to an iPhone home screen and check the icon and full screen.
+3. Listen to `trommelwirbel`, `fanfare` and `medaille` on the `/styleguide` sound board.
