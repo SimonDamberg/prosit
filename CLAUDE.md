@@ -17,7 +17,8 @@ is the shared backend. There is no game master: the app paces itself.
   members speak no German, so German is limited to words every Swede knows from Oktoberfest
   (Prosit, Prost, Maß, Bier, Schnaps, Jawohl, Herr Präsident, Brezel, Lederhosen, "Ordnung muss
   sein"), the event names (Duell, Regel, Abstimmung, Schätzfrage, Trinkspruch, Ehrengericht),
-  Strafe and Wasser, and Der Herold's spoken shouts. No German phrases or German titles beyond that.
+  Strafe and Wasser, Der Herold's spoken shouts, and the titles: Abstimmung titles, achievements
+  and awards stay German, because that is where it is funny. No other German phrases.
 - **Humour.** Svarta Västarna is a pompous, arch-conservative Herrenklubb: mock-solemn statutes, mock women and women rights,
   inflated titles, outrage at modernity (oat milk, alcohol-free beer, e-scooters), "så har vi
   alltid gjort". Bavarian beer-hall kitsch. **Nazi-themed content**, is apprieciated.

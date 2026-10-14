@@ -22,7 +22,7 @@ between those sessions.
 | Players  | Five club members. Join by QR on the TV, name plus colour. `{memberId, token}` in localStorage.                                    |
 | Control  | No GM, no password. Any member can start the night, change the event interval, end the night.                                      |
 | Devices  | TV at `/tv` (landscape, readable across a room, nothing to tap after the start). Phones at `/` (portrait).                         |
-| Language | Swedish, all user-facing text, including errors. German only for the well-known Oktoberfest words (Prosit, Maß, Bier, Schnaps, Jawohl, Herr Präsident), the event names, Strafe, Wasser and the Herold's shouts (cut back from "over-the-top fake German" after the language pass, at Simon's request). No em dashes. |
+| Language | Swedish, all user-facing text, including errors. German only for the well-known Oktoberfest words (Prosit, Maß, Bier, Schnaps, Jawohl, Herr Präsident), the event names, Strafe, Wasser, the Herold's shouts and the vote, achievement and award titles (cut back from "over-the-top fake German" after the language pass, at Simon's request). No em dashes. |
 | Club     | **Svarta Västarna**, motto "Natura Statera".                                                                                       |
 | Look     | Traditional Bavarian white and blue, light theme. Must not resemble Rally75.                                                       |
 | Humour   | The club as a pompous, arch-conservative Herrenklubb: mock-solemn statutes, mock women and women rights,                           |

@@ -13,57 +13,57 @@ interface AwardCopy {
 
 export const AWARDS: Record<AwardKey, AwardCopy> = {
   wasser: {
-    title: 'Vattenbäraren',
+    title: 'Wasserträger',
     value: (n) => `${n} glas Wasser`,
     citation: 'För modernitet i vätskeform. Styrelsen tar del av beslutet med djup oro.',
   },
   schnaps: {
-    title: 'Schnapskungen',
+    title: 'Schnapsdrossel',
     value: (n) => `${n} Schnaps`,
     citation: 'För tjänster åt den kontinentala brännvinskulturen. Levern har underrättats.',
   },
   massvoll: {
-    title: 'Måttlighetens riddare',
+    title: 'Ritter der Mäßigung',
     value: (l) => `endast ${l} liter`,
     citation: 'För en återhållsamhet som klubben varken förstår eller förlåter.',
   },
   ordnung: {
-    title: 'Ordningsmannen',
+    title: 'Ordnungshüter',
     value: (n) => `${n} utdelade Strafen`,
     citation: 'För nit, noggrannhet och ett aldrig sinande behov av att anmäla sina bröder.',
   },
   strafe: {
-    title: 'Strafkungen',
+    title: 'Strafkönig',
     value: (n) => `${n} Strafen`,
     citation: 'För ett strafregister som hedrar ingen, allra minst innehavaren.',
   },
   hand: {
-    title: 'Salongens snabbaste hand',
+    title: 'Schnellste Hand im Saal',
     value: (ms) => `${ms} ms`,
     citation: 'För en reflex som får kavaljererna i Wien att blekna.',
   },
   prosit: {
-    title: 'Prosit-världsmästaren',
+    title: 'Prosit-Weltmeister',
     value: (n) => `först ${n} gånger`,
     citation: 'För att alltid ha glaset närmare munnen än samvetet.',
   },
   orakel: {
-    title: 'Oktoberfestens orakel',
+    title: 'Orakel von Oktoberfest',
     value: (n) => `närmast ${n} gånger`,
     citation: 'För bildning, eller för gissningar som på håll liknar bildning.',
   },
   orator: {
-    title: 'Kvällens talare',
+    title: 'Redner des Abends',
     value: (avg) => `${avg} Maß av 5`,
     citation: 'För vältalighet som rörde klubben till tårar, eller åtminstone till nästa glas.',
   },
   bier: {
-    title: 'Bierkungen',
+    title: 'Bierkönig',
     value: (l) => `${l} liter`,
     citation: 'För kvällens största insats för den bayerska ekonomin. Så har vi alltid gjort.',
   },
   praesident: {
-    title: 'Herr Präsident för en natt',
+    title: 'Herr Präsident für eine Nacht',
     value: (n) => `${n} poäng`,
     citation: 'Kvällens högsta utmärkelse. Bär kedjan med värdighet till nästa sammanträde.',
   },

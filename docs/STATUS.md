@@ -604,6 +604,6 @@ PROSIT! event, on its own timer of about ten minutes, with a laptop on HDMI as t
 The members speak no German, so the copy is now Swedish with only a short list of German words
 (Prosit, Maß, Bier, Schnaps, Jawohl, Herr Präsident, Brezel, Lederhosen, "Ordnung muss sein"),
 plus the event names, Strafe and Wasser. Der Herold's spoken lines (`HEROLD`) are unchanged.
-German phrases ("Keine Verbindung", "Etwas ging schief", "Gute Nacht", "Zieh!", "Weiter"), the
-achievement, award and Abstimmung titles, and the two rules that required speaking German were
-replaced. Copy only: no keys, logic or SQL changed. The rule is in CLAUDE.md and META_PLAN.
+German phrases ("Keine Verbindung", "Etwas ging schief", "Gute Nacht", "Zieh!", "Weiter") and
+the two rules that required speaking German were replaced. The Abstimmung, achievement and award
+titles stay German on purpose (the joke lives there). Copy only: no keys, logic or SQL changed. The rule is in CLAUDE.md and META_PLAN.
