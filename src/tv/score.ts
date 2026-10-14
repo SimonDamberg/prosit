@@ -129,6 +129,31 @@ export const CUES = {
     ...chord('brass', ['F4', 'A4', 'C5'], 1.25, 0.8),
     note('tuba', 'F2', 1.25, 0.8),
   ],
+  /** The tribunal sits: three heavy blows of the gavel and a low, grave chord. */
+  ehrengericht: [
+    ...[0, 0.42, 0.84].map((at) => note('knock', 500, at, 0.12)),
+    ...[0, 0.42, 0.84].map((at) => note('drum', 55, at, 0.2, 0.7)),
+    ...chord('brass', ['C3', 'Eb3', 'G3'], 1.3, 1.3, 0.85),
+    note('tuba', 'C2', 1.3, 1.3),
+  ],
+  /** A motion before the annual meeting: the bell calls the members in, the band seconds it. */
+  stadgeandring: [
+    note('bell', 'E4', 0, 1.4, 0.8),
+    note('brass', 'E4', 0.6, 0.18),
+    note('brass', 'A4', 0.8, 0.18),
+    ...chord('brass', ['A3', 'C#4', 'E4', 'A4'], 1, 0.9),
+    note('tuba', 'A2', 1, 0.9),
+  ],
+  /** A new leader in the points: a short herald call, sharp and a little indignant. */
+  machtwechsel: [
+    note('snare', 2800, 0, 0.1, 0.6),
+    note('brass', 'D4', 0, 0.12),
+    note('brass', 'G4', 0.14, 0.12),
+    note('brass', 'B4', 0.28, 0.12),
+    ...chord('brass', ['G3', 'D4', 'G4', 'D5'], 0.42, 0.7),
+    note('tuba', 'G2', 0.42, 0.7),
+    note('drum', 65, 0.42, 0.3),
+  ],
   /** A result that costs nobody anything: the beer-hall Tusch, ta-daa. */
   tusch: [
     ...chord('brass', ['Bb3', 'D4', 'F4'], 0, 0.16),

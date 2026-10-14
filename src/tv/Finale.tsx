@@ -7,6 +7,8 @@ import { rankTallies, strafeTally, tallyDrinks } from '../shared/game/drinks'
 import { fmtLitres } from '../shared/game/format'
 import { cx, Crest } from '../ui'
 import { play } from './audio'
+import { say } from './herold'
+import { HEROLD } from '../shared/content/tv'
 import { setStageBusy } from './music'
 
 /** A cue due further back than this (a reloaded TV) is skipped. */
@@ -23,18 +25,21 @@ interface FinaleProps {
 }
 
 /** Plays each cue of the ceremony once, when its moment comes. */
-function useFinaleSounds(step: FinaleStep, awards: readonly Award[], now: number) {
+function useFinaleSounds(step: FinaleStep, awards: readonly Award[], members: readonly MemberRow[], now: number) {
   const sounded = useRef(new Set<string>())
-  const cue = (key: string, at: number, name: Parameters<typeof play>[0]) => {
+  const cue = (key: string, at: number, name: Parameters<typeof play>[0], line?: string) => {
     if (now < at || sounded.current.has(key)) return
     sounded.current.add(key)
-    if (now < at + SOUND_WINDOW_MS) play(name)
+    if (now >= at + SOUND_WINDOW_MS) return
+    play(name)
+    if (line) say(line, name === 'fanfare' ? 3200 : 1400)
   }
   useEffect(() => {
     if (step.phase !== 'award') return
     const award = awards[step.index]
+    const names = award.memberIds.flatMap((id) => members.find((m) => m.id === id)?.name ?? []).join(', ')
     cue(`roll:${step.index}`, step.startsAt, 'trommelwirbel')
-    cue(`reveal:${step.index}`, step.revealAt, award.key === 'praesident' ? 'fanfare' : 'tusch')
+    cue(`reveal:${step.index}`, step.revealAt, award.key === 'praesident' ? 'fanfare' : 'tusch', HEROLD.award(AWARDS[award.key].title, names))
   })
 
   // The playlist steps back for the ceremony and returns for the rest of the night.
@@ -138,7 +143,7 @@ export function Finale({ night, members, drinks, strafen, points, events, now }:
     [members, drinks, strafen, points, events, night.endedAt],
   )
   const step = finaleStep(night.endedAt ?? now, awards.length, now)
-  useFinaleSounds(step, awards, now)
+  useFinaleSounds(step, awards, members, now)
 
   const revealed = step.phase === 'award' && now >= step.revealAt
   const key = step.phase === 'award' ? `award:${step.index}:${revealed}` : step.phase

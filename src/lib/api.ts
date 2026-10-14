@@ -104,6 +104,16 @@ export function createApi(db: SupabaseClient) {
       return rpc<NewMember>('join', { p_name: name, p_colour: colour })
     },
 
+    /** A ten-minute code another phone trades for `targetId` (the handover). Any member may issue one. */
+    issueClaim(who: Identity, targetId: string): Promise<string> {
+      return rpc<string>('issue_claim', { ...auth(who), p_target: targetId })
+    },
+
+    /** Trades a claim code for its member and a fresh token. The member's old token stops working. */
+    claim(code: string): Promise<NewMember> {
+      return rpc<NewMember>('claim', { p_code: code })
+    },
+
     // Drinks and Strafen -----------------------------------------------------------------
 
     async logDrink(who: Identity, kind: DrinkKind): Promise<DrinkRow> {

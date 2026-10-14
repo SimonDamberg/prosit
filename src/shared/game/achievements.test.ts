@@ -107,3 +107,28 @@ describe('computeAchievements', () => {
     expect(computeAchievements(log({ drinks }))).toEqual(computeAchievements(log({ drinks: [...drinks].reverse() })))
   })
 })
+
+describe('besinnung', () => {
+  it('honours a Wasser after three Maß in a row, once', () => {
+    const drinks = [
+      drink('a', 'mass', 1),
+      drink('a', 'ol', 2),
+      drink('a', 'mass', 3),
+      drink('b', 'wasser', 4),
+      drink('a', 'mass', 5),
+      drink('a', 'wasser', 6),
+      drink('a', 'mass', 7),
+      drink('a', 'mass', 8),
+      drink('a', 'mass', 9),
+      drink('a', 'wasser', 10),
+    ]
+    expect(computeAchievements(log({ drinks })).filter((x) => x.key === 'besinnung')).toEqual([
+      { id: 'besinnung:a', key: 'besinnung', memberId: 'a', at: 6 },
+    ])
+  })
+
+  it('needs the Maß first', () => {
+    const drinks = [drink('a', 'mass', 1), drink('a', 'mass', 2), drink('a', 'wasser', 3), drink('a', 'mass', 4)]
+    expect(keys(log({ drinks }))).not.toContain('besinnung:a')
+  })
+})

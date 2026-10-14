@@ -21,6 +21,10 @@ export const ACHIEVEMENTS: Record<AchievementKey, AchievementCopy> = {
   prosit3: { title: 'Schnellster Prost', line: (n) => `${n} var först i skålen tre gånger. Glaset har vuxit fast i handen.` },
   duell2: { title: 'Revolverheld', line: (n) => `${n} har vunnit två dueller. Ingen vågar blinka.` },
   orator: { title: 'Goldene Zunge', line: (n) => `${n} höll ett tal värt minst 4,5 Maß.` },
+  besinnung: {
+    title: 'Ein Moment der Besinnung',
+    line: (n) => `${n} drack ett Wasser efter tre Maß. Styrelsen protesterar, läkaren applåderar.`,
+  },
   volltreffer: { title: 'Volltreffer', line: (n) => `${n} gissade exakt rätt. Misstänkt. Telefonen ska undersökas.` },
 }
 

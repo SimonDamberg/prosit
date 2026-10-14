@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
+  protocolRows,
+  pointLeaders,
   awardsOf,
   awardValue,
   computeAwards,
@@ -169,5 +171,36 @@ describe('finaleStep', () => {
 
   it('goes straight from the intro to the standings without awards', () => {
     expect(finaleStep(end, 0, end + FINALE_INTRO_MS)).toEqual({ phase: 'standings', startsAt: end + FINALE_INTRO_MS })
+  })
+})
+
+describe('pointLeaders', () => {
+  const p = (memberId: string, amount: number) => ({ memberId, amount })
+
+  it('crowns nobody before the first point', () => {
+    expect(pointLeaders([], ['a', 'b'])).toEqual([])
+  })
+
+  it('crowns the most points, ties in member order, strangers left out', () => {
+    expect(pointLeaders([p('b', 3), p('a', 1), p('a', 2), p('x', 9)], ['a', 'b', 'c'])).toEqual(['a', 'b'])
+    expect(pointLeaders([p('c', 1), p('b', 3)], ['a', 'b', 'c'])).toEqual(['b'])
+  })
+})
+
+describe('protocolRows', () => {
+  it('ranks by points, then litres, then fewest Strafen, and lists each member once', () => {
+    const l = log({
+      drinks: [drink('a', 'mass'), drink('b', 'mass'), drink('b', 'ol'), drink('c', 'mass')],
+      points: [
+        { memberId: 'c', amount: 3, at: 0 },
+        { memberId: 'a', amount: 1, at: 0 },
+      ],
+      strafen: [{ memberId: 'd', givenBy: null, at: 0 }],
+    })
+    const rows = protocolRows(l, computeAwards(l))
+    expect(rows.map((r) => r.memberId)).toEqual(['c', 'a', 'b', 'd'])
+    expect(rows[0]).toMatchObject({ memberId: 'c', cl: 100, points: 3, strafen: 0 })
+    expect(rows[0].awards).toContain('praesident')
+    expect(rows[3]).toMatchObject({ memberId: 'd', cl: 0, points: 0, strafen: 1 })
   })
 })

@@ -1,0 +1,70 @@
+// Pools for the two parliamentary events: the charges before the Ehrengericht and the amendments
+// the club votes on in a Stadgeändring. Each is drawn from a seed-shuffled pool (schedule.ts).
+
+/** Crimes against the statutes. Read out as "Den anklagade har ...". Short, so the TV keeps one line or two. */
+export const CHARGES = [
+  'beställt havremjölk i kaffet',
+  'åkt elsparkcykel till en klubbaftons förfest',
+  'ätit en vegansk korv och kallat den god',
+  'sagt ordet "brunch" utan ironi',
+  'druckit alkoholfritt öl frivilligt',
+  'dansat till musik utan blåsinstrument',
+  'lämnat en skål innan glaset var tomt',
+  'bjudit in klubben via en kalenderinbjudan',
+  'skurit sin Brezel med kniv',
+  'burit västen oknäppt i offentligheten',
+  'kallat Maßen för "en stor stark"',
+  'yttrat att Oktoberfest är "lite mycket"',
+  'använt ordet "work-life balance"',
+  'ätit avokadotoast under klubbens öppettider',
+  'beställt en drink med paraply',
+  'skickat en röstmemo längre än en minut',
+  'gått på yoga och berättat om det',
+  'fotograferat maten innan den åts',
+  'föreslagit att mötet kunde ha varit ett mejl',
+  'druckit ur en burk med sugrör',
+  'kallat Herr Präsident "kompis"',
+  'påstått att lager och pilsner är samma sak',
+  'tittat på klockan under en Trinkspruch',
+  'använt solglasögon inomhus',
+  'beställt en "lättöl, tack"',
+  'lyssnat på en podd om personlig utveckling',
+  'tagit med egen dryck till en ölhall',
+  'sagt "skål" utan ögonkontakt',
+  'haft ett lösenord som inte var "Natura Statera"',
+  'gått hem före klubbens officiella avslutning',
+  'nämnt ett gymkort vid bordet',
+  'slagit i en Maß utan att vänta på de andra',
+] as const
+
+/**
+ * Amendments to the statutes. A passed one joins the statutes in the TV header as "Antagen i
+ * kväll: ...", so a test holds each to the same length as STADGAR.
+ */
+export const AMENDMENTS = [
+  'Västen får bäras även till frukost.',
+  'Wasser förbjuds efter klockan tjugo.',
+  'Brezeln upphöjs till klubbens officiella valuta.',
+  'Varje mening avslutas med "Jawohl".',
+  'Herr Präsident tilltalas med "Eure Hoheit".',
+  'Stolarna avskaffas. Man står upp som förr.',
+  'Mobiltelefonen kallas hädanefter "apparaten".',
+  'Kassören får sitt arvode i Schnaps.',
+  'Skålen utförs med armen i rät vinkel mot bordet.',
+  'Alla tal inleds med "Hochverehrte Brüder".',
+  'Den som säger "typ" betalar nästa runda.',
+  'Elsparkcykeln förklaras persona non grata.',
+  'Klubbens år börjar och slutar med Oktoberfest.',
+  'Lederhosen blir tillåten klädsel vid begravningar.',
+  'Vatten byter namn till "flytande skam".',
+  'Mötet öppnas med tre slag på bordet. Hårda slag.',
+  'Ordet "modern" stryks ur svenska språket.',
+  'Den yngste medlemmen bär brickan resten av året.',
+  'Mustasch blir obligatorisk från och med nu.',
+  'Klubbens hymn sjungs stående, även i bilen.',
+  'Havremjölk klassas som ett ämne, inte en dryck.',
+  'Tystnad råder när Maßen lyfts.',
+  'Varje protokoll skrivs för hand med bläckpenna.',
+  'Kvällen förlängs automatiskt med en timme.',
+  'Medlem som förlorar en duell bär hatten bakfram.',
+] as const

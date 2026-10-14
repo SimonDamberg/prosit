@@ -1,24 +1,35 @@
 import { useState } from 'react'
 import { getApi } from '../lib/supabase'
-import type { Identity } from '../lib/types'
-import { DRINK_HINTS, DRINK_ICONS, DRINK_LABELS, DRINK_LOGGED } from '../shared/content/drinks'
+import type { DrinkRow, Identity } from '../lib/types'
+import { DRINK_HINTS, DRINK_ICONS, DRINK_LABELS, DRINK_LOGGED, WASSER_NUDGE } from '../shared/content/drinks'
 import { HOME } from '../shared/content/phone'
-import type { Tally } from '../shared/game/drinks'
+import { wasserDue, type Tally } from '../shared/game/drinks'
 import { DRINK_KINDS, type DrinkKind } from '../shared/game/types'
 import { Button, toast } from '../ui'
 import { reportError } from './report'
 
+interface DrinkPadProps {
+  identity: Identity
+  tally: Tally
+  /** The member's drinks so far, for the physician's Wasser nudge. */
+  drinks: readonly DrinkRow[]
+}
+
 /** Four "+1" buttons and the undo. The counts come back through Realtime, not from the tap. */
-export function DrinkPad({ identity, tally }: { identity: Identity; tally: Tally }) {
+export function DrinkPad({ identity, tally, drinks }: DrinkPadProps) {
   const [pending, setPending] = useState<DrinkKind | 'undo' | null>(null)
   const logged = DRINK_KINDS.reduce((n, kind) => n + tally.counts[kind], 0)
 
   const log = async (kind: DrinkKind) => {
     setPending(kind)
     try {
-      await getApi().logDrink(identity, kind)
-      const lines = DRINK_LOGGED[kind]
-      toast({ text: lines[tally.counts[kind] % lines.length], tone: kind === 'wasser' ? 'info' : 'win', ms: 2500 })
+      const row = await getApi().logDrink(identity, kind)
+      if (kind === 'mass' && wasserDue([...drinks.filter((d) => d.id !== row.id), row], identity.memberId)) {
+        toast({ text: WASSER_NUDGE[tally.counts.mass % WASSER_NUDGE.length], tone: 'info', ms: 5000 })
+      } else {
+        const lines = DRINK_LOGGED[kind]
+        toast({ text: lines[tally.counts[kind] % lines.length], tone: kind === 'wasser' ? 'info' : 'win', ms: 2500 })
+      }
     } catch (err) {
       reportError(err)
     } finally {

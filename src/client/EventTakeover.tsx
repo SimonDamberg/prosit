@@ -2,8 +2,10 @@ import type { EventRow, Identity, MemberRow } from '../lib/types'
 import { stageEvent } from '../shared/game/schedule'
 import { AbstimmungTakeover } from './AbstimmungTakeover'
 import { DuellTakeover } from './DuellTakeover'
+import { EhrengerichtTakeover } from './EhrengerichtTakeover'
 import { PrositTakeover } from './PrositTakeover'
 import { SchatzfrageTakeover } from './SchatzfrageTakeover'
+import { StadgeandringTakeover } from './StadgeandringTakeover'
 import { TrinkspruchTakeover } from './TrinkspruchTakeover'
 
 interface EventTakeoverProps {
@@ -31,6 +33,10 @@ export function EventTakeover({ events, identity, members, now }: EventTakeoverP
       return <SchatzfrageTakeover key={event.id} {...props} payload={payload} />
     case 'trinkspruch':
       return <TrinkspruchTakeover key={event.id} {...props} payload={payload} />
+    case 'ehrengericht':
+      return <EhrengerichtTakeover key={event.id} {...props} payload={payload} />
+    case 'stadgeandring':
+      return <StadgeandringTakeover key={event.id} {...props} payload={payload} />
     default:
       return null
   }

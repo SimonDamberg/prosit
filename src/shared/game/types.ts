@@ -7,7 +7,16 @@ export type DrinkKind = (typeof DRINK_KINDS)[number]
 
 export type NightStatus = 'idle' | 'live' | 'ended'
 
-export const EVENT_KINDS = ['prosit', 'duell', 'regel', 'abstimmung', 'schatzfrage', 'trinkspruch'] as const
+export const EVENT_KINDS = [
+  'prosit',
+  'duell',
+  'regel',
+  'abstimmung',
+  'schatzfrage',
+  'trinkspruch',
+  'ehrengericht',
+  'stadgeandring',
+] as const
 export type EventKind = (typeof EVENT_KINDS)[number]
 
 export type EventStatus = 'live' | 'done'
@@ -32,6 +41,10 @@ export type EventPayload =
   | { kind: 'abstimmung'; question: string; title: string }
   | { kind: 'schatzfrage'; question: string; answer: number; unit: string }
   | { kind: 'trinkspruch'; speaker: string; topic: string }
+  /** The club tribunal: `accused` defends against `charge`, then the others vote. */
+  | { kind: 'ehrengericht'; accused: string; charge: string }
+  /** The club votes on an amendment to the statutes. */
+  | { kind: 'stadgeandring'; amendment: string }
 
 // Responses: one per member and event.
 
@@ -45,6 +58,8 @@ export type EventResponse =
   | { kind: 'schatzfrage'; guess: number }
   /** 1 to 5 Maß. */
   | { kind: 'trinkspruch'; rating: number }
+  | { kind: 'ehrengericht'; guilty: boolean }
+  | { kind: 'stadgeandring'; ja: boolean }
 
 // Results: what resolve() writes back onto the event.
 
@@ -63,6 +78,10 @@ export type EventResult =
   | { kind: 'schatzfrage'; closest: string | null; furthest: string | null; guesses: Record<string, number> }
   /** `average` is null when nobody rated. */
   | { kind: 'trinkspruch'; average: number | null; ratings: Record<string, number> }
+  /** A tie acquits. `votes` counts the club's votes, the accused's own left out. */
+  | { kind: 'ehrengericht'; guilty: boolean; votes: { skyldig: number; frikand: number } }
+  /** Passes on a strict majority of the votes cast. */
+  | { kind: 'stadgeandring'; passed: boolean; ja: number; nej: number }
 
 export interface PointsAward {
   memberId: string

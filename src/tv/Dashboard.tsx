@@ -8,9 +8,11 @@ import type {
   PointsRow,
   StrafeRow,
 } from "../lib/types";
-import { ABSTIMMUNG, REGEL, TV_STAGE } from "../shared/content/events";
+import { ABSTIMMUNG, REGEL, STADGEANDRING, TV_STAGE } from "../shared/content/events";
 import {
+  HEROLD,
   STADGAR,
+  TV_CROWN,
   TV_EMPTY,
   TV_ENDED,
   TV_JOIN,
@@ -19,8 +21,9 @@ import {
 } from "../shared/content/tv";
 import { BRAND } from "../shared/content/ui";
 import { computeAchievements } from "../shared/game/achievements";
+import { pointLeaders } from "../shared/game/awards";
 import { strafeTally, sumTallies, tallyDrinks } from "../shared/game/drinks";
-import { stageEvent } from "../shared/game/schedule";
+import { passedAmendments, stageEvent } from "../shared/game/schedule";
 import { fmtClock, fmtLitres } from "../shared/game/format";
 import {
   Crest,
@@ -32,6 +35,7 @@ import {
 import { AchievementPopup } from "./AchievementPopup";
 import { play } from "./audio";
 import { EventStage } from "./EventStage";
+import { say } from "./herold";
 import { MemberBars } from "./MemberBars";
 import { PaceTimeline } from "./PaceTimeline";
 import { StrafeRegister } from "./StrafeRegister";
@@ -79,10 +83,37 @@ function useStrafeToasts(
         tone: "error",
         ms: 8000,
       });
-      // A Strafe from an event already had its trombone, with the verdict.
-      if (s.eventId === null) play("strafe");
+      // A Strafe from an event already had its trombone and its verdict, with the stage.
+      if (s.eventId === null) {
+        play("strafe");
+        say(HEROLD.strafe(name, s.reason), 1600);
+      }
     }
   }, [strafen, members]);
+}
+
+/**
+ * Machtwechsel: a fanfare, a toast and the Herold when one member alone takes the points lead
+ * from somebody else. Quiet for the first leader of the night and for a tie.
+ */
+function useMachtwechsel(leaders: readonly string[], members: readonly MemberRow[]) {
+  const holder = useRef<string | null | undefined>(undefined);
+  const sole = leaders.length === 1 ? leaders[0] : null;
+  useEffect(() => {
+    const before = holder.current;
+    if (sole === null) return;
+    holder.current = sole;
+    if (before === undefined || before === null || before === sole) return;
+    const name = members.find((m) => m.id === sole)?.name;
+    if (!name) return;
+    play("machtwechsel");
+    toast({ text: TV_CROWN.toast(name), tone: "win", ms: 8000 });
+    say(HEROLD.machtwechsel(name), 1200);
+  }, [sole, members]);
+  // The first render with data names the first holder without a fanfare.
+  useEffect(() => {
+    if (holder.current === undefined) holder.current = sole;
+  }, [sole]);
 }
 
 /** One line across the dashboard: the rule in force, or a nudge to start the night. */
@@ -140,6 +171,19 @@ export function Dashboard({
     for (const p of points) out[p.memberId] = (out[p.memberId] ?? 0) + p.amount;
     return out;
   }, [points]);
+  const leaders = useMemo(
+    () =>
+      pointLeaders(
+        points,
+        members.map((m) => m.id),
+      ),
+    [points, members],
+  );
+  useMachtwechsel(leaders, members);
+  const statutes = useMemo(
+    () => [...STADGAR, ...passedAmendments(events).map(STADGEANDRING.inForce)],
+    [events],
+  );
   const achievements = useMemo(
     () =>
       computeAchievements({
@@ -193,7 +237,7 @@ export function Dashboard({
             <span className="tracking-[0.18em] text-messing-deep uppercase">
               {BRAND.motto}
             </span>
-            {!ended && <> · {STADGAR[Math.floor(now / STATUTE_MS) % STADGAR.length]}</>}
+            {!ended && <> · {statutes[Math.floor(now / STATUTE_MS) % statutes.length]}</>}
           </p>
         </div>
         <p className="text-tv-lg leading-none font-black text-koenig tabular-nums">
@@ -258,6 +302,7 @@ export function Dashboard({
               tallies={tallies}
               strafeCounts={strafeCounts}
               pointCounts={pointCounts}
+              leaders={leaders}
             />
             <div className="grid min-h-0 grid-rows-2 gap-6">
               <PaceTimeline

@@ -2,7 +2,7 @@
 // pops each one up once. Pure and deterministic; nothing is stored, so an undone drink can take
 // one back (the TV has already shown it by then, and that is fine).
 import type { NightLog } from './awards'
-import { CENTILITRES } from './drinks'
+import { CENTILITRES, WASSER_DUE_MASS } from './drinks'
 
 export const ACHIEVEMENT_KEYS = [
   'anstich',
@@ -19,6 +19,7 @@ export const ACHIEVEMENT_KEYS = [
   'duell2',
   'orator',
   'volltreffer',
+  'besinnung',
 ] as const
 export type AchievementKey = (typeof ACHIEVEMENT_KEYS)[number]
 
@@ -65,6 +66,15 @@ export function computeAchievements(log: NightLog): Achievement[] {
   if (firstMass) earn('anstich', firstMass.memberId, firstMass.at)
   const firstWasser = drinks.find((d) => d.kind === 'wasser')
   if (firstWasser) earn('wasser', firstWasser.memberId, firstWasser.at)
+
+  // A Wasser after WASSER_DUE_MASS Maß in a row: the physician's advice, heeded.
+  const streak = new Map<string, number>()
+  for (const d of drinks) {
+    if (d.kind === 'mass') streak.set(d.memberId, (streak.get(d.memberId) ?? 0) + 1)
+    if (d.kind !== 'wasser') continue
+    if ((streak.get(d.memberId) ?? 0) >= WASSER_DUE_MASS) earn('besinnung', d.memberId, d.at)
+    streak.set(d.memberId, 0)
+  }
 
   const noble = drinks.filter((d) => d.kind !== 'wasser')
   const cl = new Map<string, number>()

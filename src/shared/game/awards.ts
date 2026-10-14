@@ -158,3 +158,44 @@ export function finaleStep(endedAt: number, awardCount: number, now: number): Fi
 export function finaleLength(awardCount: number): number {
   return FINALE_INTRO_MS + awardCount * FINALE_AWARD_MS
 }
+
+/**
+ * Who holds the most points right now, in `memberIds` order (more than one on a tie). Empty while
+ * nobody has a point. The TV crowns them.
+ */
+export function pointLeaders(points: readonly { memberId: string; amount: number }[], memberIds: readonly string[]): string[] {
+  const total = new Map<string, number>()
+  for (const p of points) total.set(p.memberId, (total.get(p.memberId) ?? 0) + p.amount)
+  const best = Math.max(0, ...memberIds.map((id) => total.get(id) ?? 0))
+  return best > 0 ? memberIds.filter((id) => total.get(id) === best) : []
+}
+
+/** One member's line in the finished protocol. */
+export interface ProtocolRow {
+  memberId: string
+  /** Centilitres of noble drinks. */
+  cl: number
+  points: number
+  strafen: number
+  awards: AwardKey[]
+}
+
+/**
+ * The finished protocol, best first: most points, then most litres, then fewest Strafen, then
+ * `memberIds` order. For the image a phone shares after the night.
+ */
+export function protocolRows(log: NightLog, awards: readonly Award[]): ProtocolRow[] {
+  const tallies = tallyDrinks(log.drinks, log.memberIds)
+  const strafen = strafeTally(log.strafen)
+  const rows = log.memberIds.map((memberId, i) => ({
+    i,
+    memberId,
+    cl: tallies[i].cl,
+    points: log.points.filter((p) => p.memberId === memberId).reduce((sum, p) => sum + p.amount, 0),
+    strafen: strafen[memberId] ?? 0,
+    awards: awardsOf(awards, memberId).map((a) => a.key),
+  }))
+  return rows
+    .sort((a, b) => b.points - a.points || b.cl - a.cl || a.strafen - b.strafen || a.i - b.i)
+    .map((r) => ({ memberId: r.memberId, cl: r.cl, points: r.points, strafen: r.strafen, awards: r.awards }))
+}

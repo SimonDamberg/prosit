@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { AWARD_REASONS } from '../content/events'
+import { AMENDMENTS, CHARGES } from '../content/charges'
 import { QUESTIONS } from '../content/questions'
+import { STADGAR } from '../content/tv'
 import { RULES, ruleBreach } from '../content/rules'
 import { TOAST_TOPICS } from '../content/toasts'
 import { VOTES } from '../content/votes'
@@ -11,10 +13,13 @@ import {
   DRAW_MAX,
   DRAW_MIN,
   DUELL_MS,
+  EHRENGERICHT_MS,
+  ehrengerichtPhases,
   ENABLED_KINDS,
   GAP_MAX,
   GAP_MIN,
   nextAction,
+  passedAmendments,
   onStage,
   pickFair,
   planEvent,
@@ -28,6 +33,7 @@ import {
   responders,
   RESULT_MS,
   SCHATZFRAGE_MS,
+  STADGEANDRING_MS,
   stageEvent,
   TRINKSPRUCH_MS,
   trinkspruchPhases,
@@ -45,6 +51,8 @@ const LASTS: Record<EventKind, number> = {
   abstimmung: ABSTIMMUNG_MS,
   schatzfrage: SCHATZFRAGE_MS,
   trinkspruch: TRINKSPRUCH_MS,
+  ehrengericht: EHRENGERICHT_MS,
+  stadgeandring: STADGEANDRING_MS,
 }
 
 /** The payloads of the first `count` events of `kind` in a night. */
@@ -121,7 +129,8 @@ describe('planEvent', () => {
     }
     expect([...counts.keys()].sort()).toEqual([...ENABLED_KINDS].sort())
     expect(ENABLED_KINDS).not.toContain('prosit')
-    for (const n of counts.values()) expect(n).toBeGreaterThan(35)
+    // 300 draws: at least 70 % of a fair share each.
+    for (const n of counts.values()) expect(n).toBeGreaterThan((300 / ENABLED_KINDS.length) * 0.7)
   })
 
   it('uses every rule, vote, question and topic once before any comes back', () => {
@@ -135,6 +144,8 @@ describe('planEvent', () => {
       check(payloadsOf(seed, 'abstimmung', VOTES.length * 2).map((p) => p.question), VOTES.map((v) => v.question))
       check(payloadsOf(seed, 'schatzfrage', QUESTIONS.length * 2).map((p) => p.question), QUESTIONS.map((q) => q.question))
       check(payloadsOf(seed, 'trinkspruch', TOAST_TOPICS.length * 2).map((p) => p.topic), TOAST_TOPICS)
+      check(payloadsOf(seed, 'ehrengericht', CHARGES.length * 2).map((p) => p.charge), CHARGES)
+      check(payloadsOf(seed, 'stadgeandring', AMENDMENTS.length * 2).map((p) => p.amendment), AMENDMENTS)
     }
   })
 
@@ -178,6 +189,14 @@ describe('planEvent', () => {
     }
   })
 
+  it('puts every member in the dock once before anyone stands trial again', () => {
+    for (const seed of SEEDS) {
+      const accused = payloadsOf(seed, 'ehrengericht', IDS.length * 2).map((p) => p.accused)
+      expect([...accused.slice(0, IDS.length)].sort()).toEqual(IDS)
+      expect([...accused.slice(IDS.length)].sort()).toEqual(IDS)
+    }
+  })
+
   it('gives the same plan whatever the order of the member list', () => {
     for (let seq = 1; seq <= 30; seq++) {
       expect(planEvent(7, seq, 12, [...IDS].reverse())).toEqual(planEvent(7, seq, 12, IDS))
@@ -210,6 +229,15 @@ describe('content pools', () => {
     expect(new Set(VOTES.map((v) => v.title)).size).toBe(VOTES.length)
     expect(new Set(QUESTIONS.map((q) => q.question)).size).toBe(QUESTIONS.length)
     expect(new Set(TOAST_TOPICS).size).toBe(TOAST_TOPICS.length)
+    expect(new Set(CHARGES).size).toBe(CHARGES.length)
+    expect(new Set(AMENDMENTS).size).toBe(AMENDMENTS.length)
+  })
+
+  it('keep amendments as short as the statutes they join, and new', () => {
+    for (const a of AMENDMENTS) {
+      expect([...a].length).toBeLessThanOrEqual(56)
+      expect(STADGAR.some((s) => s.endsWith(a))).toBe(false)
+    }
   })
 
   it('ask questions with a plain number for an answer', () => {
@@ -255,6 +283,34 @@ describe('responders', () => {
     expect(responders({ kind: 'duell', a: 'b', b: 'd', drawAfterMs: 1 }, IDS)).toEqual(['b', 'd'])
     expect(responders({ kind: 'trinkspruch', speaker: 'c', topic: 'T' }, IDS)).toEqual(['a', 'b', 'd', 'e'])
     expect(responders({ kind: 'regel', rule: 'R' }, IDS)).toBeNull()
+    expect(responders({ kind: 'ehrengericht', accused: 'e', charge: 'C' }, IDS)).toEqual(['a', 'b', 'c', 'd'])
+    expect(responders({ kind: 'stadgeandring', amendment: 'A' }, IDS)).toEqual(IDS)
+  })
+})
+
+describe('ehrengerichtPhases', () => {
+  it('gives the defence the first third', () => {
+    expect(ehrengerichtPhases(1000, 1000 + EHRENGERICHT_MS)).toEqual({ voteFrom: 26_000 })
+  })
+})
+
+describe('passedAmendments', () => {
+  const vote = (seq: number, amendment: string, passed: boolean | null) => ({
+    seq,
+    payload: { kind: 'stadgeandring' as const, amendment },
+    result: passed === null ? null : { kind: 'stadgeandring' as const, passed, ja: 0, nej: 0 },
+  })
+
+  it('lists the passed amendments in the order they passed', () => {
+    const events = [
+      vote(5, 'E', true),
+      vote(2, 'B', true),
+      vote(3, 'C', false),
+      vote(4, 'D', null),
+      { seq: 1, payload: { kind: 'regel' as const, rule: 'R' }, result: { kind: 'regel' as const } },
+    ]
+    expect(passedAmendments(events)).toEqual(['B', 'E'])
+    expect(passedAmendments([])).toEqual([])
   })
 })
 

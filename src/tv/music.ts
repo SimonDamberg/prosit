@@ -65,6 +65,7 @@ let take = 0
 let singerReady = false
 let singing = false
 let busy = false
+let speaking = false
 
 /** For the styleguide: what the two players are up to. */
 export const musicState = () => ({
@@ -118,7 +119,7 @@ export function startMusic() {
             bandReady = true
             band!.setShuffle(true)
             band!.setLoop(true)
-            band!.setVolume(busy ? MUSIC.ducked : MUSIC.volume)
+            band!.setVolume(level())
             if (!singing) band!.playVideoAt(0)
           },
           // A video that is gone or may not be embedded: on to the next one.
@@ -184,5 +185,16 @@ export function stopProsit() {
 export function setStageBusy(on: boolean) {
   busy = on
   if (!on) stopProsit()
-  if (bandReady) band?.setVolume(on ? MUSIC.ducked : MUSIC.volume)
+  if (bandReady) band?.setVolume(level())
+}
+
+/** Der Herold is speaking (herold.ts): the playlist steps back for him too. */
+export function setHeroldBusy(on: boolean) {
+  speaking = on
+  if (bandReady) band?.setVolume(level())
+}
+
+/** The playlist's volume: ducked while an event has the stage or the Herold speaks. */
+function level(): number {
+  return busy || speaking ? MUSIC.ducked : MUSIC.volume
 }

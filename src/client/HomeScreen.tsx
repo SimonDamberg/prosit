@@ -6,16 +6,18 @@ import { DRINK_ICONS, DRINK_LABELS } from '../shared/content/drinks'
 import { ENDED, HOME, PHONE_LOADING } from '../shared/content/phone'
 import { ruleBreach } from '../shared/content/rules'
 import { BRAND } from '../shared/content/ui'
-import { computeAwards } from '../shared/game/awards'
+import { computeAwards, protocolRows } from '../shared/game/awards'
 import { placeOf, tallyDrinks } from '../shared/game/drinks'
 import { fmtLitres } from '../shared/game/format'
 import { DRINK_KINDS, type EventKind } from '../shared/game/types'
 import { Button, ConnectionBadge, LoadingScreen } from '../ui'
 import { DrinkPad } from './DrinkPad'
 import { EventTakeover } from './EventTakeover'
+import { HandoverPanel } from './HandoverPanel'
 import { MyAwards } from './MyAwards'
 import { NightControls } from './NightControls'
 import { ResetPanel } from './ResetPanel'
+import { ShareProtocol } from './ShareProtocol'
 import { RuleCard } from './RuleCard'
 import { StrafeSheet } from './StrafeSheet'
 
@@ -55,14 +57,15 @@ export function HomeScreen({ me, identity, members, night, events, connection, o
     [drinks.data, members],
   )
   const mine = tallies?.find((t) => t.memberId === me.id)
+  const myDrinks = useMemo(() => drinks.data?.filter((d) => d.memberId === me.id) ?? [], [drinks.data, me.id])
   // Only the ended night reads them out; the log is closed by then.
-  const awards = useMemo(
-    () =>
-      ended && drinks.data && strafen.data && points.data
-        ? computeAwards({ memberIds: members.map((m) => m.id), drinks: drinks.data, strafen: strafen.data, points: points.data, events, endedAt: night.endedAt })
-        : null,
-    [ended, drinks.data, strafen.data, points.data, members, events, night.endedAt],
-  )
+  const protocol = useMemo(() => {
+    if (!ended || !drinks.data || !strafen.data || !points.data) return null
+    const log = { memberIds: members.map((m) => m.id), drinks: drinks.data, strafen: strafen.data, points: points.data, events, endedAt: night.endedAt }
+    const awards = computeAwards(log)
+    return { awards, rows: protocolRows(log, awards) }
+  }, [ended, drinks.data, strafen.data, points.data, members, events, night.endedAt])
+  const awards = protocol?.awards ?? null
 
   if (!tallies || !mine || !strafen.data) return <LoadingScreen label={PHONE_LOADING.data} />
 
@@ -95,6 +98,7 @@ export function HomeScreen({ me, identity, members, night, events, connection, o
             <p className="mt-4 text-sm font-bold tracking-[0.18em] text-messing-deep uppercase">{BRAND.motto}</p>
           </section>
           {awards && <MyAwards me={me} members={members} awards={awards} />}
+          {protocol && <ShareProtocol rows={protocol.rows} members={members} endedAt={night.endedAt} />}
         </>
       ) : (
         <>
@@ -102,7 +106,7 @@ export function HomeScreen({ me, identity, members, night, events, connection, o
           {rules.map((r) => (
             <RuleCard key={r.id} rule={r.rule} endsAt={r.endsAt} now={now} onReport={() => openStrafe(ruleBreach(r.rule))} />
           ))}
-          <DrinkPad identity={identity} tally={mine} />
+          <DrinkPad identity={identity} tally={mine} drinks={myDrinks} />
           <Button variant="danger" size="lg" block onClick={() => openStrafe(null)}>
             {HOME.strafeButton}
           </Button>
@@ -147,6 +151,7 @@ export function HomeScreen({ me, identity, members, night, events, connection, o
       </section>
 
       {night.status === 'live' && <NightControls night={night} identity={identity} onTrigger={onTrigger} />}
+      <HandoverPanel identity={identity} members={members} />
       {night.status !== 'live' && <ResetPanel identity={identity} />}
 
       {strafe && (

@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { useConnection, useEvents, useMe, useMembers, useNight } from '../lib/hooks'
 import { useEngine } from '../lib/useEngine'
 import { ENDED, PHONE_LOADING } from '../shared/content/phone'
 import { BRAND } from '../shared/content/ui'
 import { ConnectionBadge, Crest, LoadingScreen, Toaster } from '../ui'
+import { CLAIM_PARAM, claimMember } from './claim'
 import { HomeScreen } from './HomeScreen'
 import { JoinScreen } from './JoinScreen'
 
@@ -19,12 +21,27 @@ function Notice({ title, text }: { title: string; text: string }) {
 }
 
 /** Phone app: join, then the drink log and the events. Every joined phone also runs the engine. */
+/** A handover link (`/?claim=CODE`): claim the member once, then drop the code from the address. */
+function useClaimLink(onClaimed: () => void) {
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    const code = url.searchParams.get(CLAIM_PARAM)
+    if (!code) return
+    url.searchParams.delete(CLAIM_PARAM)
+    window.history.replaceState(null, '', url)
+    void claimMember(code).then((ok) => ok && onClaimed())
+    // Once per page load: the code is spent by the first try.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+}
+
 export default function ClientApp() {
   const connection = useConnection()
   const night = useNight()
   const members = useMembers()
   const events = useEvents()
   const { identity, me } = useMe(members.data)
+  useClaimLink(members.reload)
   const engine = useEngine(identity, { night: night.data, events: events.data, members: members.data }, Boolean(me))
   const error = night.error ?? members.error
 

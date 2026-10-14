@@ -8,11 +8,14 @@ import { stageEvent } from '../shared/game/schedule'
 import type { EventResult } from '../shared/game/types'
 import { cx } from '../ui'
 import { play } from './audio'
+import { say, verdictLine } from './herold'
 import { playProsit, setStageBusy, stopProsit } from './music'
 import { AbstimmungStage } from './stages/AbstimmungStage'
 import { Chip, type StageProps } from './stages/Chip'
 import { DuellStage } from './stages/DuellStage'
+import { EhrengerichtStage } from './stages/EhrengerichtStage'
 import { SchatzfrageStage } from './stages/SchatzfrageStage'
+import { StadgeandringStage } from './stages/StadgeandringStage'
 import { TrinkspruchStage } from './stages/TrinkspruchStage'
 import { useLinger } from './useLinger'
 
@@ -36,6 +39,8 @@ function hasStrafe(result: EventResult): boolean {
       return result.furthest !== null
     case 'trinkspruch':
       return result.average !== null && result.average < TRINKSPRUCH_FLOOR
+    case 'ehrengericht':
+      return result.guilty
     default:
       return false
   }
@@ -112,6 +117,10 @@ function Stage(props: StageProps) {
       return <SchatzfrageStage {...props} payload={payload} />
     case 'trinkspruch':
       return <TrinkspruchStage {...props} payload={payload} />
+    case 'ehrengericht':
+      return <EhrengerichtStage {...props} payload={payload} />
+    case 'stadgeandring':
+      return <StadgeandringStage {...props} payload={payload} />
   }
 }
 
@@ -170,8 +179,12 @@ export function EventStage({ events, members, now }: { events: readonly EventRow
     if (event.status === 'live') {
       // PROSIT! gets the real song over the playlist; the synthesized one is the understudy.
       if (event.kind !== 'prosit' || !playProsit()) play(event.kind)
-    } else if (event.result) play(hasStrafe(event.result) ? 'strafe' : 'tusch')
-  }, [event, fresh])
+    } else if (event.result) {
+      play(hasStrafe(event.result) ? 'strafe' : 'tusch')
+      // After the brass, so the band does not drown him.
+      say(verdictLine(event.payload, event.result, members), 1800)
+    }
+  }, [event, fresh, members])
 
   // The playlist steps back while an event has the stage, and returns (ending the Prosit) after.
   const staged = event !== undefined

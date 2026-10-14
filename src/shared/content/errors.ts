@@ -16,6 +16,7 @@ export const ERROR_MESSAGES = {
   colour_invalid: 'Den färgen godkänns inte av styrelsen.',
   colour_taken: 'Färgen är redan tagen. Ingen delar färg i den här klubben.',
   club_full: 'Klubben är fullsatt. Inga nya medlemmar sedan 1887.',
+  claim_invalid: 'Medlemskortet är ogiltigt eller förfallet. Be en broder visa en ny kod.',
 
   // Night, drinks and Strafen
   night_ended: 'Protokollet är stängt. Gute Nacht.',

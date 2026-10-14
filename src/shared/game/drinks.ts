@@ -115,3 +115,21 @@ export function strafeTally(strafen: readonly { memberId: string }[]): Record<st
   for (const s of strafen) out[s.memberId] = (out[s.memberId] ?? 0) + 1
   return out
 }
+
+/** After this many Maß without a Wasser, the club's physician speaks up. */
+export const WASSER_DUE_MASS = 3
+
+/** Maß logged by each member since their last Wasser, in the order of `at`. */
+function massStreaks(drinks: readonly DrinkEntry[]): Map<string, number> {
+  const streak = new Map<string, number>()
+  for (const d of [...drinks].sort((a, b) => a.at - b.at)) {
+    if (d.kind === 'wasser') streak.set(d.memberId, 0)
+    else if (d.kind === 'mass') streak.set(d.memberId, (streak.get(d.memberId) ?? 0) + 1)
+  }
+  return streak
+}
+
+/** True when the member has had `WASSER_DUE_MASS` Maß or more since their last Wasser. */
+export function wasserDue(drinks: readonly DrinkEntry[], memberId: string): boolean {
+  return (massStreaks(drinks.filter((d) => d.memberId === memberId)).get(memberId) ?? 0) >= WASSER_DUE_MASS
+}

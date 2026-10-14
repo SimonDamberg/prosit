@@ -550,3 +550,51 @@ PROSIT! event, on its own timer of about ten minutes, with a laptop on HDMI as t
 - Not looked at in a browser: the statute in the TV header at 1920 wide (it is `truncate`, so it
   cannot break the layout, and the toasts sit over it), and the longer copy on the phone's reset
   dialog and buttons.
+
+## Scan picks: handover, two new events, Herold, crown, protocol image
+
+**Done**
+
+- **Handover** (migration `20261015000001_handover_and_kinds.sql`): `issue_claim` (any member, any
+  target, 8-char code valid 10 min) and `claim` (code -> fresh token, old token dies, code spent).
+  Phone: "Matrikeln" section (`HandoverPanel`) with a QR to `/?claim=CODE`; `ClientApp` claims on
+  load; the join screen takes a typed code. Fixes the ghost member that collected a PROSIT!
+  Strafe every ten minutes after a lost phone. New error `claim_invalid`.
+- **Ehrengericht**: a member stands trial for a charge (`CHARGES`, 32) against the statutes,
+  defends for the first third, then the others vote. Strict majority convicts (Strafe); a tie
+  acquits (1 point). Accused picked in fair rounds. Cue `ehrengericht` (gavel).
+- **Stadgeändring**: the club votes on an amendment (`AMENDMENTS`, 25, each <= 56 chars). A passed
+  one joins the statutes in the TV header as "Antagen i kväll: ..." (`passedAmendments`). Cue
+  `stadgeandring`.
+- Both kinds: types, `planEvent`, `responders`, `resolve`, takeovers, stages, `hasStrafe`, bot
+  answers, styleguide scenes (`ehrengericht-live/-skyldig/-frikand`, `stadgeandring-live/-antagen/
+  -avslagen`), tests. The migration widens the `events.kind` check and `spawn_event`. Seven kinds
+  now share the programme, so each comes a little less often.
+- **Hydration**: after the Maß that makes three without a Wasser (`wasserDue`), the phone toasts a
+  nudge from the club physician (`WASSER_NUDGE`); a Wasser then earns the achievement `besinnung`.
+- **Der Herold** (`src/tv/herold.ts`): speech synthesis in a German voice reads event verdicts,
+  hand-given Strafen, achievements, award winners and Machtwechsel. Ducks the playlist via
+  `setHeroldBusy` in `music.ts`. `VITE_HEROLD=off` silences him.
+- **Crown and Machtwechsel**: `pointLeaders` (tested); a brass crown by the leader(s) in
+  `MemberBars`; when one member alone takes the lead from another, cue `machtwechsel`, a toast
+  and the Herold.
+- **Protocol image**: `protocolRows` (tested) and `src/client/protocolImage.ts` draw a 1080x1350
+  PNG in the club's tokens and fonts; "Dela protokollet" on the ended phone screen opens the
+  share sheet (drawn ahead, so Safari allows it) or downloads.
+- Verified: 206 tests, lint and build pass. Local stack: `db reset` applies the new migration
+  and the bots pass all 20 steps (the new handover step; both new kinds through the referee).
+  Headless screenshots of `ehrengericht-live`, `ehrengericht-skyldig` and
+  `stadgeandring-antagen` look right.
+
+**Not checked**
+
+- Nobody has heard the Herold or the three new cues. The voice depends on the TV laptop's Chrome
+  (macOS has German voices: Anna, Markus). Check on the `/styleguide` sound board and in a night.
+- The bot night drew no Ehrengericht or Stadgeändring by chance; the live flow was checked
+  through the referee step and the stages only, not with phones in a browser.
+- The handover and the share button were not run in a browser. Share sheet behaviour on iOS
+  in particular.
+
+**Open issues**
+
+- The main chunk is still over 500 kB (supabase-js), unchanged.

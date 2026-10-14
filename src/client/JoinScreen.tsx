@@ -7,12 +7,22 @@ import { JOIN } from '../shared/content/phone'
 import { BRAND } from '../shared/content/ui'
 import { cleanName, firstFreeColour, MAX_NAME_LENGTH, MEMBER_COLOURS, nameProblem } from '../shared/game/members'
 import { Button, Crest, cx, toast } from '../ui'
+import { claimMember } from './claim'
 import { reportError } from './report'
 
 export function JoinScreen({ members, onJoined }: { members: readonly MemberRow[]; onJoined: () => void }) {
   const [name, setName] = useState('')
   const [picked, setPicked] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [code, setCode] = useState('')
+
+  const claim = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!code.trim()) return
+    setBusy(true)
+    if (await claimMember(code)) onJoined()
+    setBusy(false)
+  }
 
   const taken = members.map((m) => m.colour)
   // A colour someone else took while this form was open falls back to the next free one.
@@ -91,6 +101,26 @@ export function JoinScreen({ members, onJoined }: { members: readonly MemberRow[
         <Button type="submit" size="lg" block loading={busy} disabled={!colour}>
           {JOIN.submit}
         </Button>
+      </form>
+
+      <form onSubmit={claim} className="flex flex-col gap-2 border-t-2 border-himmel pt-5">
+        <p className="text-sm text-weste-dim">{JOIN.lostPhone}</p>
+        <div className="flex gap-2">
+          <input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            maxLength={8}
+            aria-label={JOIN.codeLabel}
+            placeholder={JOIN.codePlaceholder}
+            autoCapitalize="characters"
+            autoComplete="off"
+            enterKeyHint="go"
+            className="min-h-12 min-w-0 flex-1 rounded-md bg-card px-3 text-xl font-bold tracking-[0.2em] text-weste ring-2 ring-koenig/40 outline-none ring-inset placeholder:text-weste-dim/40 focus:ring-koenig"
+          />
+          <Button type="submit" variant="quiet" disabled={busy || code.trim().length === 0}>
+            {JOIN.codeSubmit}
+          </Button>
+        </div>
       </form>
       </div>
     </main>

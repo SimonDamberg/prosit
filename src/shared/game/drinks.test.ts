@@ -7,9 +7,11 @@ import {
   strafeTally,
   sumTallies,
   tallyDrinks,
+  WASSER_DUE_MASS,
+  wasserDue,
   type DrinkEntry,
 } from './drinks'
-import { DRINK_KINDS } from './types'
+import { DRINK_KINDS, type DrinkKind } from './types'
 
 const d = (memberId: string, kind: DrinkEntry['kind'], at = 0): DrinkEntry => ({ memberId, kind, at })
 
@@ -114,5 +116,22 @@ describe('strafeTally', () => {
   it('counts per member', () => {
     expect(strafeTally([{ memberId: 'a' }, { memberId: 'b' }, { memberId: 'a' }])).toEqual({ a: 2, b: 1 })
     expect(strafeTally([])).toEqual({})
+  })
+})
+
+describe('wasserDue', () => {
+  const d = (memberId: string, kind: DrinkKind, at: number) => ({ memberId, kind, at })
+
+  it('is due after three Maß since the last Wasser, whatever the row order', () => {
+    const drinks = [d('a', 'mass', 3), d('a', 'mass', 1), d('a', 'ol', 2)]
+    expect(wasserDue(drinks, 'a')).toBe(false)
+    expect(wasserDue([...drinks, d('a', 'mass', 4)], 'a')).toBe(true)
+  })
+
+  it('starts over at a Wasser and counts only the member asked about', () => {
+    const drinks = [d('a', 'mass', 1), d('a', 'mass', 2), d('a', 'mass', 3), d('a', 'wasser', 4), d('b', 'mass', 5), d('a', 'mass', 6)]
+    expect(wasserDue(drinks, 'a')).toBe(false)
+    expect(wasserDue(drinks, 'b')).toBe(false)
+    expect(WASSER_DUE_MASS).toBe(3)
   })
 })

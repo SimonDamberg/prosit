@@ -9,6 +9,8 @@ export const DUELL_PICK_POINTS = 1
 export const SCHATZ_POINTS = 3
 /** A Trinkspruch rated under this on average earns a Strafe instead of points. */
 export const TRINKSPRUCH_FLOOR = 2
+/** An acquittal is worth a little: the accused has defended the club's honour. */
+export const ACQUITTAL_POINTS = 1
 
 export interface Answer {
   memberId: string
@@ -31,6 +33,10 @@ export function resolve(payload: EventPayload, answers: readonly Answer[], membe
       return resolveSchatzfrage(payload, answers, memberIds)
     case 'trinkspruch':
       return resolveTrinkspruch(payload, answers, memberIds)
+    case 'ehrengericht':
+      return resolveEhrengericht(payload, answers, memberIds)
+    case 'stadgeandring':
+      return resolveStadgeandring(answers, memberIds)
   }
 }
 
@@ -175,4 +181,40 @@ function resolveTrinkspruch(payload: Payload<'trinkspruch'>, answers: readonly A
     points.push({ memberId: payload.speaker, amount: Math.round(average), reason: AWARD_REASONS.trinkspruch })
   }
   return { result: { kind: 'trinkspruch', average, ratings }, points, strafen }
+}
+
+/**
+ * The club votes on the accused, who has no vote. A strict majority of "skyldig" convicts, with a
+ * Strafe; a tie or no votes at all acquits (in dubio pro Bier), with a point for the defence.
+ */
+function resolveEhrengericht(payload: Payload<'ehrengericht'>, answers: readonly Answer[], memberIds: readonly string[]): Resolution {
+  const votes = { skyldig: 0, frikand: 0 }
+  for (const a of firstAnswers(answers, memberIds)) {
+    if (a.payload.kind !== 'ehrengericht' || a.memberId === payload.accused) continue
+    if (a.payload.guilty === true) votes.skyldig++
+    else if (a.payload.guilty === false) votes.frikand++
+  }
+  const guilty = votes.skyldig > votes.frikand
+  const points: PointsAward[] = []
+  const strafen: StrafeAward[] = []
+  if (!memberIds.includes(payload.accused)) {
+    // The accused has left the matrikel: nobody to punish or acquit.
+  } else if (guilty) {
+    strafen.push({ memberId: payload.accused, reason: AWARD_REASONS.ehrengerichtGuilty })
+  } else {
+    points.push({ memberId: payload.accused, amount: ACQUITTAL_POINTS, reason: AWARD_REASONS.ehrengerichtAcquitted })
+  }
+  return { result: { kind: 'ehrengericht', guilty, votes }, points, strafen }
+}
+
+/** An amendment passes on a strict majority of the votes cast. Nobody wins or loses anything. */
+function resolveStadgeandring(answers: readonly Answer[], memberIds: readonly string[]): Resolution {
+  let ja = 0
+  let nej = 0
+  for (const a of firstAnswers(answers, memberIds)) {
+    if (a.payload.kind !== 'stadgeandring') continue
+    if (a.payload.ja === true) ja++
+    else if (a.payload.ja === false) nej++
+  }
+  return { result: { kind: 'stadgeandring', passed: ja > nej, ja, nej }, points: [], strafen: [] }
 }

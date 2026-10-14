@@ -96,7 +96,7 @@ the engine as nobody (`spawn_event` and `resolve_event` take a null member; noth
 
 - `planEvent(seed, seq, intervalMin, memberIds)` in `src/shared/game/schedule.ts` (pure): event
   N of the **programme**: kind, payload, wait and duration, from `createRng(seed + N)`. Kinds never
-  repeat back to back. `ENABLED_KINDS` are the five it draws; `COMPANY_KINDS` need two members.
+  repeat back to back. `ENABLED_KINDS` are the seven it draws; `COMPANY_KINDS` need two members.
 - **PROSIT! is not in the programme. It has its own clock:** `prositGapMs(seed, count, interval)`,
   6 to 14 min after the previous PROSIT! (about every ten), so it cuts in between the others. The
   programme number of an event is therefore not its `seq`; `nextAction` sets the `seq`. Texts come
@@ -139,6 +139,9 @@ the engine as nobody (`spawn_event` and `resolve_event` take a null member; noth
 - `src/tv/Finale.tsx` replaces the dashboard once the night is `ended`. The phone shows
   "Dina utmärkelser". "Avsluta kvällen" lives in `NightControls`, "Ny kväll" (reset, optionally
   with wipe) in `ResetPanel`.
+- **Handover** (`issue_claim` / `claim`): any member shows any member's card (`HandoverPanel`),
+  a ten-minute code as a QR to `/?claim=CODE`; the new phone gets a fresh token and the old one
+  stops working. This replaces joining twice after a lost phone.
 - PWA: `public/manifest.webmanifest` and the icons in `public/`. No service worker (no offline mode).
 - `docs/PARTY_DAY.md` is the checklist for the night.
 
@@ -185,5 +188,9 @@ plates, no condensed uppercase sans, no chunky sinking buttons).
   `VITE_MUSIC_PLAYLIST` / `VITE_PROSIT_VIDEO`). `EventStage` calls `playProsit()` when a PROSIT!
   starts (false means: play the synth cue instead) and `setStageBusy()` to duck the playlist
   while any event has the stage and to return to it afterwards.
+- **Der Herold** (`src/tv/herold.ts`): the TV reads verdicts, hand-given Strafen, achievements,
+  awards and a Machtwechsel aloud with `speechSynthesis` in a German voice (lines in `HEROLD`,
+  `src/shared/content/tv.ts`). Primed by the unlock tap, ducks the playlist, silent without
+  voices, off with `VITE_HEROLD=off`. Call `say(line, delayMs)` after the cue, never over it.
 - `/styleguide` (dev only) shows all of it. `/styleguide?stage=prosit-live` is one stage alone at
   full size; the scene names are in `src/styleguide/fixtures.ts`. Add a scene for a new stage.

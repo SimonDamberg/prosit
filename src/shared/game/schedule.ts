@@ -1,27 +1,44 @@
 // The event schedule and the engine's decision, both pure. Every connected client computes the
 // same plan for event N from the night's seed, so whichever client writes first writes what the
 // others would have written.
+import { AMENDMENTS, CHARGES } from '../content/charges'
 import { QUESTIONS } from '../content/questions'
 import { RULES } from '../content/rules'
 import { TOAST_TOPICS } from '../content/toasts'
 import { VOTES } from '../content/votes'
 import { createRng } from './rng'
-import type { EventKind, EventPayload, EventStatus, NightStatus } from './types'
+import type { EventKind, EventPayload, EventResult, EventStatus, NightStatus } from './types'
 
 /**
  * Kinds the programme draws from. PROSIT! is not one of them: it keeps its own clock (see
  * `prositGapMs`) and cuts in between the others, about every ten minutes.
  */
-export const ENABLED_KINDS: readonly EventKind[] = ['duell', 'regel', 'abstimmung', 'schatzfrage', 'trinkspruch']
+export const ENABLED_KINDS: readonly EventKind[] = [
+  'duell',
+  'regel',
+  'abstimmung',
+  'schatzfrage',
+  'trinkspruch',
+  'ehrengericht',
+  'stadgeandring',
+]
 
 /** Kinds that take two members or more. A smaller club never draws them. */
-export const COMPANY_KINDS: readonly EventKind[] = ['duell', 'abstimmung', 'trinkspruch']
+export const COMPANY_KINDS: readonly EventKind[] = ['duell', 'abstimmung', 'trinkspruch', 'ehrengericht']
 
 /** A Regel holds in the background: the next event may start while it is still in force. */
 export const NON_BLOCKING_KINDS: readonly EventKind[] = ['regel']
 
 /** Kinds that collect answers. The engine reads those fresh before it decides anything. */
-export const ANSWERED_KINDS: readonly EventKind[] = ['prosit', 'duell', 'abstimmung', 'schatzfrage', 'trinkspruch']
+export const ANSWERED_KINDS: readonly EventKind[] = [
+  'prosit',
+  'duell',
+  'abstimmung',
+  'schatzfrage',
+  'trinkspruch',
+  'ehrengericht',
+  'stadgeandring',
+]
 
 export const PROSIT_MS = 60_000
 export const REGEL_MS = 10 * 60_000
@@ -29,6 +46,8 @@ export const DUELL_MS = 45_000
 export const ABSTIMMUNG_MS = 60_000
 export const SCHATZFRAGE_MS = 75_000
 export const TRINKSPRUCH_MS = 90_000
+export const EHRENGERICHT_MS = 75_000
+export const STADGEANDRING_MS = 60_000
 /** "ZIEH!" comes this far into a Duell, as a share of its length: time to get the phones out. */
 export const DRAW_MIN = 0.6
 export const DRAW_MAX = 0.85
@@ -46,7 +65,16 @@ export const RESOLVE_GRACE_MS = 1000
 export const RESULT_MS = 12_000
 
 // Each pool is shuffled by the seed plus its own salt, so the pools do not move in step.
-const SALT = { votes: 7_919, questions: 15_485_863, toasts: 104_729, speaker: 1_299_709, prosit: 611_953 } as const
+const SALT = {
+  votes: 7_919,
+  questions: 15_485_863,
+  toasts: 104_729,
+  speaker: 1_299_709,
+  prosit: 611_953,
+  charges: 32_452_843,
+  accused: 2_750_159,
+  amendments: 49_979_687,
+} as const
 
 export interface EventPlan {
   /** From `planEvent`: the number in the programme. From `nextAction`: the seq to spawn it as. */
@@ -78,7 +106,16 @@ export function planEvent(
   const allowed = (k: EventKind) => ids.length >= 2 || !COMPANY_KINDS.includes(k)
   const drawable = ENABLED_KINDS.filter(allowed)
   // How many earlier events of each kind: the turn into that kind's pool.
-  const turns: Record<EventKind, number> = { prosit: 0, duell: 0, regel: 0, abstimmung: 0, schatzfrage: 0, trinkspruch: 0 }
+  const turns: Record<EventKind, number> = {
+    prosit: 0,
+    duell: 0,
+    regel: 0,
+    abstimmung: 0,
+    schatzfrage: 0,
+    trinkspruch: 0,
+    ehrengericht: 0,
+    stadgeandring: 0,
+  }
   let prev: EventKind | null = null
   let rng = createRng(seed)
   let kind: EventKind = drawable[0]
@@ -118,6 +155,13 @@ export function planEvent(
       const topic = draw(TOAST_TOPICS, SALT.toasts)
       return { seq, kind, payload: { kind, speaker, topic }, gapMs, durationMs: lasts(TRINKSPRUCH_MS) }
     }
+    case 'ehrengericht': {
+      const [accused] = pickFair(seed + SALT.accused, ids, turn)
+      const charge = draw(CHARGES, SALT.charges)
+      return { seq, kind, payload: { kind, accused, charge }, gapMs, durationMs: lasts(EHRENGERICHT_MS) }
+    }
+    case 'stadgeandring':
+      return { seq, kind, payload: { kind, amendment: draw(AMENDMENTS, SALT.amendments) }, gapMs, durationMs: lasts(STADGEANDRING_MS) }
   }
 }
 
@@ -142,6 +186,8 @@ export function responders(payload: EventPayload, memberIds: readonly string[]):
       return [payload.a, payload.b]
     case 'trinkspruch':
       return memberIds.filter((id) => id !== payload.speaker)
+    case 'ehrengericht':
+      return memberIds.filter((id) => id !== payload.accused)
     default:
       return [...memberIds]
   }
@@ -154,6 +200,21 @@ export function responders(payload: EventPayload, memberIds: readonly string[]):
 export function trinkspruchPhases(startedAt: number, endsAt: number): { speechFrom: number; speechTo: number } {
   const length = endsAt - startedAt
   return { speechFrom: startedAt + Math.round(length / 6), speechTo: startedAt + Math.round(length / 2) }
+}
+
+/**
+ * An Ehrengericht in two acts: the accused defends until `voteFrom` (the first third), then the
+ * club votes until the event ends. 25 s of defence in the usual 75.
+ */
+export function ehrengerichtPhases(startedAt: number, endsAt: number): { voteFrom: number } {
+  return { voteFrom: startedAt + Math.round((endsAt - startedAt) / 3) }
+}
+
+/** The amendments the club passed tonight, oldest first. They join the statutes on the TV. */
+export function passedAmendments(events: readonly { seq: number; payload: EventPayload; result: EventResult | null }[]): string[] {
+  return [...events]
+    .sort((a, b) => a.seq - b.seq)
+    .flatMap((e) => (e.payload.kind === 'stadgeandring' && e.result?.kind === 'stadgeandring' && e.result.passed ? [e.payload.amendment] : []))
 }
 
 /**

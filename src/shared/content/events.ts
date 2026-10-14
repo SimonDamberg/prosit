@@ -15,6 +15,8 @@ export const AWARD_REASONS = {
   schatzFurthest: 'Längst ifrån i Schätzfrage',
   trinkspruch: 'Betyg för Trinkspruch',
   trinkspruchBad: 'Undermålig Trinkspruch',
+  ehrengerichtGuilty: 'Dömd av Ehrengericht',
+  ehrengerichtAcquitted: 'Frikänd av Ehrengericht',
 } as const
 
 export const NIGHT = {
@@ -39,6 +41,8 @@ export const NIGHT = {
     abstimmung: 'Abstimmung',
     schatzfrage: 'Schätzfrage',
     trinkspruch: 'Trinkspruch',
+    ehrengericht: 'Ehrengericht',
+    stadgeandring: 'Stadgeändring',
   },
 } as const
 
@@ -154,6 +158,50 @@ export const TRINKSPRUCH = {
   youGood: 'Klubben är rörd. Poängen är dina.',
   youBad: 'Undermåligt. Strafe, och tystnad framöver.',
   youJudged: 'Ditt betyg är protokollfört. Talaren får aldrig veta. Alla får veta.',
+} as const
+
+export const EHRENGERICHT = {
+  kicker: 'Ehrengericht',
+  accused: (name: string) => `${name} står inför rätta`,
+  youAccused: 'Du står inför rätta',
+  charge: (charge: string) => `Den anklagade har ${charge}.`,
+  defend: 'Försvara dig! Tala, ty rätten lyssnar. Nästan.',
+  defence: 'Försvaret har ordet',
+  listen: 'Hör den anklagades försvar. Rösta sedan efter samvete, eller efter törst.',
+  deliberation: 'Rätten överlägger',
+  awaitVerdict: 'Rätten överlägger. Den anklagade tiger och hoppas.',
+  vote: 'Ditt utslag',
+  guilty: 'Skyldig',
+  acquit: 'Frikänd',
+  voted: (guilty: boolean) => (guilty ? 'Du röstade skyldig. Rättvisan är blind, men inte nykter.' : 'Du röstade frikänd. Barmhärtighet antecknas.'),
+  count: (done: number, of: number) => `${done} av ${of} har röstat`,
+  resultTitle: 'Domen har fallit',
+  verdictGuilty: 'Skyldig!',
+  verdictAcquitted: 'Frikänd!',
+  tally: (skyldig: number, frikand: number) => `${skyldig} skyldig, ${frikand} frikänd`,
+  strafe: (name: string) => `Strafe: ${name}`,
+  acquitted: (name: string) => `${name} frikänns. In dubio pro Bier.`,
+  youGuilty: 'Skyldig. Strafe, och ett ärr i ditt rykte.',
+  youAcquitted: 'Frikänd. Hedern är räddad, och en poäng därtill.',
+  youJudged: 'Rätten har talat. Ditt utslag är protokollfört.',
+} as const
+
+export const STADGEANDRING = {
+  kicker: 'Stadgeändring',
+  motion: 'Motion till årsmötet',
+  call: 'Ska stadgarna ändras? Röstning sker öppet, som sig bör.',
+  ja: 'Ja',
+  nej: 'Nej',
+  voted: (ja: boolean) => (ja ? 'Du röstade ja. Modigt.' : 'Du röstade nej. Så har vi alltid gjort.'),
+  count: (done: number, of: number) => `${done} av ${of} har röstat`,
+  resultTitle: 'Årsmötet har beslutat',
+  passed: 'Antagen!',
+  rejected: 'Avslagen',
+  tally: (ja: number, nej: number) => `${ja} ja, ${nej} nej`,
+  passedText: 'Ändringen gäller från och med nu. Der Fernseher för in den bland stadgarna.',
+  rejectedText: 'Stadgarna förblir orörda. Ordnung muss sein.',
+  /** In the TV header, among the statutes. */
+  inForce: (amendment: string) => `Antagen i kväll: ${amendment}`,
 } as const
 
 /** TV only. */

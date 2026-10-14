@@ -3,6 +3,8 @@ import type { MemberRow } from '../lib/types'
 import { ACHIEVEMENT_KICKER, ACHIEVEMENTS } from '../shared/content/achievements'
 import type { Achievement } from '../shared/game/achievements'
 import { play } from './audio'
+import { say } from './herold'
+import { HEROLD } from '../shared/content/tv'
 
 /** How long one achievement stays up. */
 const SHOW_MS = 6_000
@@ -43,9 +45,11 @@ export function AchievementPopup({ achievements, members, held }: AchievementPop
       if (!next) return
       setCurrent(next)
       play('medaille')
+      const name = members.find((m) => m.id === next.memberId)?.name
+      if (name) say(HEROLD.achievement(ACHIEVEMENTS[next.key].title, name), 1000)
     }, GAP_MS)
     return () => clearTimeout(timer)
-  }, [current, held, achievements])
+  }, [current, held, achievements, members])
 
   useEffect(() => {
     if (!current) return

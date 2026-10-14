@@ -23,6 +23,13 @@ export const DRINK_ICONS: Record<DrinkKind, string> = {
   wasser: '💧',
 }
 
+/** Toast after the Maß that makes a Wasser due (wasserDue). Cycled like DRINK_LOGGED. */
+export const WASSER_NUDGE = [
+  'Tre Maß utan Wasser. Styrelsen protesterar, men läkaren insisterar. Ein Wasser, bitte.',
+  'Klubbens läkare har yttrat sig: ett glas Wasser. Protokollet suckar men lyder.',
+  'Tre Maß i rad. Ett Wasser nu är ingen modernitet, det är underhåll.',
+] as const
+
 /** Toast after a "+1". The phone cycles through each kind's lines, so the joke does not wear out. */
 export const DRINK_LOGGED: Record<DrinkKind, readonly string[]> = {
   ol: [

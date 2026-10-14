@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { AWARD_REASONS } from '../content/events'
 import {
+  ACQUITTAL_POINTS,
   DUELL_PICK_POINTS,
   DUELL_POINTS,
   PROSIT_POINTS,
@@ -242,5 +243,58 @@ describe('resolve', () => {
       resolve({ kind: 'trinkspruch', speaker: 'a', topic: 'T' }, [], members),
     ]
     for (const res of all) expect(JSON.parse(JSON.stringify(res))).toEqual(res)
+  })
+})
+
+describe('resolve Ehrengericht', () => {
+  const trial = { kind: 'ehrengericht' as const, accused: 'a', charge: 'beställt havremjölk' }
+  const vote = (memberId: string, guilty: boolean, at = 1): Answer => ({ memberId, payload: { kind: 'ehrengericht', guilty }, at })
+
+  it('convicts on a strict majority, with a Strafe', () => {
+    const res = resolve(trial, [vote('b', true), vote('c', true), vote('d', false)], members)
+    expect(res).toEqual({
+      result: { kind: 'ehrengericht', guilty: true, votes: { skyldig: 2, frikand: 1 } },
+      points: [],
+      strafen: [{ memberId: 'a', reason: AWARD_REASONS.ehrengerichtGuilty }],
+    })
+  })
+
+  it('acquits on a tie or silence, with a point for the defence', () => {
+    for (const answers of [[vote('b', true), vote('c', false)], []]) {
+      const res = resolve(trial, answers, members)
+      expect(res.result).toMatchObject({ kind: 'ehrengericht', guilty: false })
+      expect(res.points).toEqual([{ memberId: 'a', amount: ACQUITTAL_POINTS, reason: AWARD_REASONS.ehrengerichtAcquitted }])
+      expect(res.strafen).toEqual([])
+    }
+  })
+
+  it("ignores the accused's own vote, strangers and second votes", () => {
+    const answers = [vote('a', false, 1), vote('x', false, 1), vote('b', true, 1), vote('b', false, 2)]
+    expect(resolve(trial, answers, members).result).toEqual({ kind: 'ehrengericht', guilty: true, votes: { skyldig: 1, frikand: 0 } })
+  })
+
+  it('survives a JSON round trip', () => {
+    const res = resolve(trial, [vote('b', true)], members)
+    expect(JSON.parse(JSON.stringify(res))).toEqual(res)
+  })
+})
+
+describe('resolve Stadgeändring', () => {
+  const motion = { kind: 'stadgeandring' as const, amendment: 'Västen bärs till frukost.' }
+  const vote = (memberId: string, ja: boolean, at = 1): Answer => ({ memberId, payload: { kind: 'stadgeandring', ja }, at })
+
+  it('passes on a strict majority of the votes cast', () => {
+    const res = resolve(motion, [vote('a', true), vote('b', true), vote('c', false)], members)
+    expect(res).toEqual({ result: { kind: 'stadgeandring', passed: true, ja: 2, nej: 1 }, points: [], strafen: [] })
+  })
+
+  it('fails on a tie or silence (so har vi alltid gjort)', () => {
+    expect(resolve(motion, [vote('a', true), vote('b', false)], members).result).toMatchObject({ passed: false })
+    expect(resolve(motion, [], members).result).toEqual({ kind: 'stadgeandring', passed: false, ja: 0, nej: 0 })
+  })
+
+  it('counts each member once and no strangers', () => {
+    const res = resolve(motion, [vote('a', true, 1), vote('a', false, 2), vote('x', false)], members)
+    expect(res.result).toEqual({ kind: 'stadgeandring', passed: true, ja: 1, nej: 0 })
   })
 })

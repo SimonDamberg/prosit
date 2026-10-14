@@ -1,5 +1,5 @@
 import { DRINK_ICONS, DRINK_LABELS } from '../shared/content/drinks'
-import { TV_BARS } from '../shared/content/tv'
+import { TV_BARS, TV_CROWN } from '../shared/content/tv'
 import type { MemberRow } from '../lib/types'
 import { CENTILITRES, NOBLE_KINDS, rankTallies, type Tally } from '../shared/game/drinks'
 import { fmtLitres } from '../shared/game/format'
@@ -14,10 +14,22 @@ interface MemberBarsProps {
   tallies: readonly Tally[]
   strafeCounts: Record<string, number>
   pointCounts: Record<string, number>
+  /** Who leads the points (pointLeaders): they wear the crown. */
+  leaders: readonly string[]
+}
+
+/** A brass crown, drawn rather than an emoji, so it matches the crest. */
+function Crown() {
+  return (
+    <svg viewBox="0 0 24 18" role="img" aria-label={TV_CROWN.label} className="h-[0.8em] w-auto shrink-0 animate-thud self-center">
+      <path d="M2 16h20l1.5-11-6 4.5L12 1 6.5 9.5l-6-4.5z" className="fill-messing stroke-messing-deep" strokeWidth="1.2" strokeLinejoin="round" />
+      <circle cx="12" cy="11" r="1.6" className="fill-strafe" />
+    </svg>
+  )
 }
 
 /** The standings: one bar per member, longest first, stacked by drink kind. */
-export function MemberBars({ members, tallies, strafeCounts, pointCounts }: MemberBarsProps) {
+export function MemberBars({ members, tallies, strafeCounts, pointCounts, leaders }: MemberBarsProps) {
   const ranked = rankTallies(tallies)
   const maxCl = Math.max(100, ...ranked.map((t) => t.cl))
 
@@ -32,8 +44,9 @@ export function MemberBars({ members, tallies, strafeCounts, pointCounts }: Memb
           return (
             <li key={member.id} className="flex min-h-0 flex-col gap-1.5">
               <div className="flex items-baseline gap-5">
-                <span className="min-w-0 truncate font-display text-tv-md leading-none font-bold" style={{ color: member.colour }}>
-                  {member.name}
+                <span className="flex min-w-0 items-baseline gap-3 font-display text-tv-md leading-none font-bold" style={{ color: member.colour }}>
+                  {leaders.includes(member.id) && <Crown />}
+                  <span className="truncate">{member.name}</span>
                 </span>
                 <span className="flex gap-4 text-xl font-bold whitespace-nowrap text-weste-dim tabular-nums">
                   {DRINK_KINDS.map((kind) => (

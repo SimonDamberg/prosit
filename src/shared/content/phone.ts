@@ -10,6 +10,10 @@ export const JOIN = {
   submit: 'Skriv in mig',
   full: 'Alla färger är upptagna. Klubben är fullsatt, precis som stadgarna föreskriver.',
   welcome: (name: string) => `Willkommen, ${name}! Du är inskriven i matrikeln. Västen knäpps.`,
+  lostPhone: 'Redan inskriven men ny telefon? Be en broder visa ditt medlemskort, eller skriv in koden här.',
+  codeLabel: 'Kod från medlemskortet',
+  codePlaceholder: 'ABCD1234',
+  codeSubmit: 'Återta min plats',
 } as const
 
 export const HOME = {
@@ -65,4 +69,32 @@ export const RESET = {
   confirm: 'Ja, nollställ',
   cancel: 'Nein, historien får stå',
   done: 'Protokollet är nollställt. Så har vi alltid gjort.',
+} as const
+
+/** The handover: a phone that lost its member gets it back with a code from another phone. */
+export const HANDOVER = {
+  title: 'Matrikeln',
+  text: 'Har en broder bytt telefon eller tappat bort sig? Visa hans medlemskort här, så återtar han sin plats med drycker och Strafen i behåll.',
+  button: 'Visa ett medlemskort',
+  pickTitle: 'Vems medlemskort?',
+  you: '(du)',
+  cardTitle: (name: string) => `Medlemskort: ${name}`,
+  scan: 'Skanna med den nya telefonen. Koden gäller i tio minuter och kan bara användas en gång.',
+  code: 'Eller skriv in koden:',
+  warning: 'Den gamla telefonen förlorar sin plats. Så är stadgarna skrivna.',
+  close: 'Stäng',
+  claimed: 'Välkommen tillbaka. Medlemskortet är förnyat, protokollet är intakt.',
+} as const
+
+/** The finished protocol as an image, for the group chat. */
+export const PROTOCOL_SHARE = {
+  button: 'Dela protokollet',
+  busy: 'Protokollet präglas ...',
+  saved: 'Protokollet är sparat. Arkivet tackar.',
+  failed: 'Protokollet vägrade låta sig avbildas. Försök igen.',
+  shareTitle: 'Kvällens protokoll',
+  heading: 'Kvällens protokoll',
+  columns: { litres: 'Liter', points: 'Poäng', strafen: 'Strafen' },
+  footer: 'Protokollet är justerat och godkänt av styrelsen.',
+  fileName: 'prosit-protokoll.png',
 } as const

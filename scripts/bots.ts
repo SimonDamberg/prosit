@@ -25,7 +25,7 @@ import { rankTallies, strafeTally, tallyDrinks } from '../src/shared/game/drinks
 import { MAX_MEMBERS, MAX_NAME_LENGTH, MEMBER_COLOURS } from '../src/shared/game/members'
 import { resolve } from '../src/shared/game/resolve'
 import { createRng } from '../src/shared/game/rng'
-import { ANSWERED_KINDS, nextAction, planEvent } from '../src/shared/game/schedule'
+import { ANSWERED_KINDS, ehrengerichtPhases, nextAction, planEvent } from '../src/shared/game/schedule'
 import { DRINK_KINDS, type EventPayload, type EventResponse, type Resolution } from '../src/shared/game/types'
 
 if (!process.argv.includes('--reset')) {
@@ -168,6 +168,17 @@ function answer(event: EventRow, rng: ReturnType<typeof createRng>, skip: Identi
         if (bot.memberId === payload.speaker) continue
         response = { kind: 'trinkspruch', rating: 1 + rng.int(5) }
         break
+      case 'ehrengericht': {
+        if (bot.memberId === payload.accused) continue
+        // The phones open the vote after the defence; the bots wait for it too.
+        const { voteFrom } = ehrengerichtPhases(event.startedAt, event.endsAt)
+        delay = Math.max(0, voteFrom - (Date.now() + clockOffset)) + rng.float(400, 4000)
+        response = { kind: 'ehrengericht', guilty: rng.next() < 0.5 }
+        break
+      }
+      case 'stadgeandring':
+        response = { kind: 'stadgeandring', ja: rng.next() < 0.5 }
+        break
       default:
         continue
     }
@@ -284,6 +295,24 @@ await step('bad tokens are refused', async () => {
   await expectCode(api.resetNight(stolen), 'invalid_token')
   const ghost = { memberId: '00000000-0000-4000-8000-000000000000', token: bots[0].token }
   await expectCode(api.logDrink(ghost, 'ol'), 'member_not_found')
+})
+
+await step('a member is handed over to a new phone', async () => {
+  const old = bots[1]
+  await expectCode(api.issueClaim({ memberId: old.memberId, token: bots[0].token }, old.memberId), 'invalid_token')
+  await expectCode(api.issueClaim(bots[0], '00000000-0000-4000-8000-000000000000'), 'target_not_found')
+  await expectCode(api.claim('NOTACODE'), 'claim_invalid')
+
+  // Bot 0 vouches for bot 1; the "new phone" claims the code once.
+  const code = await api.issueClaim(bots[0], old.memberId)
+  assert.match(code, /^[0-9A-F]{8}$/)
+  const claimed = await api.claim(code.toLowerCase())
+  assert.equal(claimed.id, old.memberId)
+  assert.notEqual(claimed.token, old.token)
+  await expectCode(api.claim(code), 'claim_invalid')
+  await expectCode(api.logDrink(old, 'wasser'), 'invalid_token')
+  bots[1] = { memberId: claimed.id, token: claimed.token }
+  assert.equal((await api.getMembers()).length, 5)
 })
 
 await step('drinks are logged and undone', async () => {
@@ -471,7 +500,7 @@ async function assertAwards(eventId: string, expected: Resolution) {
   )
 }
 
-await step('Duell, Abstimmung, Schätzfrage and Trinkspruch pass the referee', async () => {
+await step('Duell, Abstimmung, Schätzfrage, Trinkspruch, Ehrengericht and Stadgeändring pass the referee', async () => {
   const ids = bots.map((b) => b.memberId)
   const [a, b, c, d, e] = bots
   const cases: { payload: EventPayload; answers: [Identity, EventResponse][] }[] = [
@@ -505,6 +534,23 @@ await step('Duell, Abstimmung, Schätzfrage and Trinkspruch pass the referee', a
         [e, { kind: 'trinkspruch', rating: 5 }],
       ],
     },
+    {
+      payload: { kind: 'ehrengericht', accused: d.memberId, charge: 'beställt havremjölk i kaffet' },
+      answers: [
+        [a, { kind: 'ehrengericht', guilty: true }],
+        [b, { kind: 'ehrengericht', guilty: true }],
+        [c, { kind: 'ehrengericht', guilty: false }],
+        [d, { kind: 'ehrengericht', guilty: false }],
+      ],
+    },
+    {
+      payload: { kind: 'stadgeandring', amendment: 'Västen får bäras även till frukost.' },
+      answers: [
+        [a, { kind: 'stadgeandring', ja: true }],
+        [b, { kind: 'stadgeandring', ja: false }],
+        [e, { kind: 'stadgeandring', ja: true }],
+      ],
+    },
   ]
 
   const results: Resolution[] = []
@@ -524,7 +570,7 @@ await step('Duell, Abstimmung, Schätzfrage and Trinkspruch pass the referee', a
     results.push(expected)
   }
 
-  const [duell, vote, guess, toast] = results
+  const [duell, vote, guess, toast, trial, motion] = results
   assert.deepEqual(duell.result, {
     kind: 'duell',
     winner: b.memberId,
@@ -544,6 +590,10 @@ await step('Duell, Abstimmung, Schätzfrage and Trinkspruch pass the referee', a
     ratings: { [a.memberId]: 5, [b.memberId]: 4, [c.memberId]: 4 },
   })
   assert.deepEqual(toast.points, [{ memberId: e.memberId, amount: 4, reason: 'Betyg för Trinkspruch' }])
+  // The accused's own "frikänd" does not count.
+  assert.deepEqual(trial.result, { kind: 'ehrengericht', guilty: true, votes: { skyldig: 2, frikand: 1 } })
+  assert.deepEqual(trial.strafen, [{ memberId: d.memberId, reason: 'Dömd av Ehrengericht' }])
+  assert.deepEqual(motion.result, { kind: 'stadgeandring', passed: true, ja: 2, nej: 1 })
 })
 
 await step('the night ends and the log closes', async () => {
@@ -557,8 +607,8 @@ await step('the night ends and the log closes', async () => {
   await expectCode(api.giveStrafe(bots[0], bots[1].memberId, 'För sent'), 'night_ended')
   await expectCode(api.startNight(bots[0]), 'night_ended')
   await expectCode(api.join('Sen gäst', MEMBER_COLOURS[6]), 'night_ended')
-  assert.equal(await api.spawnEvent(bots[0], 7, { kind: 'prosit' }, Date.now() + 60_000), false)
-  assert.equal((await api.getEvents()).length, 6)
+  assert.equal(await api.spawnEvent(bots[0], 9, { kind: 'prosit' }, Date.now() + 60_000), false)
+  assert.equal((await api.getEvents()).length, 8)
   assert.ok(eventId)
 })
 

@@ -29,6 +29,8 @@ const DUELL: EventPayload = { kind: 'duell', a: axel, b: palm, drawAfterMs: 5000
 const ABSTIMMUNG: EventPayload = { kind: 'abstimmung', question: 'Vem i klubben äger flest västar?', title: 'Westenkönig' }
 const SCHATZFRAGE: EventPayload = { kind: 'schatzfrage', question: 'Hur många liter rymmer en Maß?', answer: 1, unit: 'liter' }
 const TRINKSPRUCH: EventPayload = { kind: 'trinkspruch', speaker: erik, topic: 'Västens överlägsenhet över kavajen' }
+const EHRENGERICHT: EventPayload = { kind: 'ehrengericht', accused: simon, charge: 'beställt havremjölk i kaffet' }
+const STADGEANDRING: EventPayload = { kind: 'stadgeandring', amendment: 'Brezeln upphöjs till klubbens officiella valuta.' }
 
 export const SCENES = {
   'prosit-live': { payload: { kind: 'prosit' }, seconds: 14 },
@@ -63,6 +65,28 @@ export const SCENES = {
     payload: TRINKSPRUCH,
     seconds: 90,
     result: { kind: 'trinkspruch', average: 1.5, ratings: { [jesper]: 1, [axel]: 2 } },
+  },
+  'ehrengericht-live': { payload: EHRENGERICHT, seconds: 75 },
+  'ehrengericht-skyldig': {
+    payload: EHRENGERICHT,
+    seconds: 75,
+    result: { kind: 'ehrengericht', guilty: true, votes: { skyldig: 3, frikand: 1 } },
+  },
+  'ehrengericht-frikand': {
+    payload: EHRENGERICHT,
+    seconds: 75,
+    result: { kind: 'ehrengericht', guilty: false, votes: { skyldig: 2, frikand: 2 } },
+  },
+  'stadgeandring-live': { payload: STADGEANDRING, seconds: 60 },
+  'stadgeandring-antagen': {
+    payload: STADGEANDRING,
+    seconds: 60,
+    result: { kind: 'stadgeandring', passed: true, ja: 4, nej: 1 },
+  },
+  'stadgeandring-avslagen': {
+    payload: STADGEANDRING,
+    seconds: 60,
+    result: { kind: 'stadgeandring', passed: false, ja: 2, nej: 2 },
   },
 } as const satisfies Record<string, Scene>
 
