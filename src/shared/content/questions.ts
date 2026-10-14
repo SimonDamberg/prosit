@@ -40,4 +40,8 @@ export const QUESTIONS: readonly Question[] = [
   { question: 'Vilket år drabbades mänskligheten av den första iPhone?', answer: 2007, unit: '' },
   { question: 'Vilket år rullade de första hyrda elsparkcyklarna ut i Stockholm?', answer: 2018, unit: '' },
   { question: 'Hur många tangenter har ett piano?', answer: 88, unit: 'tangenter' },
+  { question: 'Vilket år avslutades Wienkongressen, senast Europa var i god ordning?', answer: 1815, unit: '' },
+  { question: 'Vilket år började Sverige sända färg-TV, och svartvitt blev omodernt?', answer: 1970, unit: '' },
+  { question: 'Vilket år införde Sverige sommartid, och rubbade naturens ordning för gott?', answer: 1980, unit: '' },
+  { question: 'Vilket år lanserades Swish, och kontanterna började sin långa död?', answer: 2012, unit: '' },
 ]

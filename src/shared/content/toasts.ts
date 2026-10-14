@@ -37,6 +37,9 @@ export const TOAST_TOPICS = [
   'Mot surdegen, hobbyn som gick för långt',
   'Till årsmötet, som alltid drar över tiden',
   'Till takten, som vi aldrig har hållit',
+  'Mot stegräknaren, som räknar fel håll',
+  'Till Weißwursten, som aldrig får höra klockan tolv',
+  'Mot molnet, där ingen gentleman förvarar något',
   // Member themes, from the running jokes in Rally75 (natcasino kuskar.ts). Simon may veto.
   'Till Jesper, som minns när ölet uppfanns',
   'Till Jespers tupplur, klubbens enda fasta punkt',
@@ -48,4 +51,11 @@ export const TOAST_TOPICS = [
   'Till Simons produkttest, som aldrig blir klart',
   'Till Palm, som ännu inte har stämt någon i kväll',
   'Till Palms bekant på departementet, vem det nu är',
+  'Till Jesper, som skyller kvällens alla förluster på lagg',
+  'Till Axel, som bugar även när han kommer sist',
+  'Till Axels läggdags, klockan nio prick',
+  'Till Erik, som gör vad som helst för en fördel',
+  'Till Palms advokat, som aldrig får ledigt',
+  'Till Palms kontakt på Rosenbad, som också är hans mamma',
+  'Till Simons Magic-kort, mer värda än hans vänner',
 ] as const

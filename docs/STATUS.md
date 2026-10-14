@@ -528,3 +528,25 @@ PROSIT! event, on its own timer of about ten minutes, with a laptop on HDMI as t
 1. Follow `docs/PARTY_DAY.md`.
 2. On the deployed site: add it to an iPhone home screen and check the icon and full screen.
 3. Listen to `trommelwirbel`, `fanfare` and `medaille` on the `/styleguide` sound board.
+
+## Humour pass
+
+**Done**
+
+- Flat copy rewritten across `src/shared/content` (loading, connection, errors, reset, verdicts,
+  achievements, a few award citations). Meaning and placeholders unchanged.
+- Pools grown: Strafe reasons 16 -> 30, rules 40 -> 50, votes 51 -> 58, toasts 46 -> 56, questions
+  32 -> 36 (facts checked: 1815, 1970, 1980, 2012).
+- Member jokes balanced across Jesper, Axel, Erik, Simon and Palm (from Rally75 `kuskar.ts`). They sit
+  at the end of each pool under the "Simon may veto" comment, and in the last five `STADGAR`.
+- `DRINK_LOGGED` is now a list per kind; `DrinkPad` cycles through it by the kind's count.
+- `STADGAR` (`src/shared/content/tv.ts`): a mock statute after the motto in the TV header, a new
+  one every 30 s on server time. Hidden once the night has ended. A test holds each to 56 chars.
+- The line stays the same as in Stage 6: no Nazi-themed jokes and none at women's expense. The cruder
+  Rally75 notes (syfilis, "oskuld") were left out.
+
+**Not checked**
+
+- Not looked at in a browser: the statute in the TV header at 1920 wide (it is `truncate`, so it
+  cannot break the layout, and the toasts sit over it), and the longer copy on the phone's reset
+  dialog and buttons.

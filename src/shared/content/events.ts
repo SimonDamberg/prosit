@@ -19,7 +19,7 @@ export const AWARD_REASONS = {
 
 export const NIGHT = {
   idleTitle: 'Kvällen inväntar start',
-  idleText: 'När alla är inskrivna i matrikeln öppnas kvällen. Därefter slår protokollet till när det behagar.',
+  idleText: 'När alla är inskrivna i matrikeln öppnas kvällen. Därefter slår protokollet till när det behagar, utan förvarning och utan nåd.',
   start: 'Starta kvällen',
   started: 'Kvällen är öppnad. Ordnung muss sein.',
   liveTitle: 'Kvällens ordning',
@@ -46,7 +46,7 @@ export const PROSIT = {
   title: 'Prosit!',
   call: 'Höj glaset, skåla och tryck',
   button: 'Prost!',
-  tapped: 'Skålen är protokollförd. Vänta på de långsamma.',
+  tapped: 'Skålen är protokollförd. Vänta på de långsamma, och döm dem i tysthet.',
   tappedCount: (done: number, of: number) => `${done} av ${of} har skålat`,
   resultTitle: 'Skålen är avgjord',
   first: (name: string) => `Snabbast: ${name}`,
@@ -54,7 +54,7 @@ export const PROSIT = {
   noStrafe: 'Ingen Strafe. Misstänkt samstämmigt.',
   youFirst: 'Du var snabbast. Herr Präsident nickar gillande.',
   youStrafe: 'Zu langsam! Du får en Strafe.',
-  youFine: 'Godkänd skål. Inga anmärkningar.',
+  youFine: 'Godkänd skål. Inga anmärkningar, inga lovord.',
 } as const
 
 /** The button that puts a verdict away. */
@@ -64,7 +64,7 @@ export const REGEL = {
   kicker: 'Neue Regel',
   title: 'Ny regel',
   holds: (clock: string) => `Gäller i ${clock}`,
-  hint: 'Brott mot regeln bestraffas med Strafe.',
+  hint: 'Brott mot regeln bestraffas med Strafe. Okunskap är ingen ursäkt.',
   report: 'Anmäl regelbrott',
   banner: 'Regel',
 } as const
@@ -89,7 +89,7 @@ export const DUELL = {
   youLost: 'Du förlorade. Strafe, och skammen därtill.',
   youBoth: 'Ingen av er förtjänade att vinna. Strafe.',
   youPickedRight: 'Rätt tippat. En poäng till protokollet.',
-  youPickedWrong: 'Fel häst. Inga poäng.',
+  youPickedWrong: 'Fel häst. Inga poäng, och ingen sympati.',
   youWatched: 'Du såg på. Det är också en insats.',
   youShrugged: 'Ingen vann, alltså vann ingen på dig heller.',
 } as const
@@ -112,7 +112,7 @@ export const SCHATZFRAGE = {
   kicker: 'Schätzfrage',
   call: 'Uppskatta. Protokollet godtar endast siffror.',
   placeholder: 'Din uppskattning',
-  submit: 'Lämna in',
+  submit: 'Lämna in under ed',
   sent: 'Svaret är inlämnat. Ångerrätt saknas.',
   count: (done: number, of: number) => `${done} av ${of} har svarat`,
   resultTitle: 'Facit',
@@ -153,13 +153,13 @@ export const TRINKSPRUCH = {
   strafe: (name: string) => `Strafe: ${name}`,
   youGood: 'Klubben är rörd. Poängen är dina.',
   youBad: 'Undermåligt. Strafe, och tystnad framöver.',
-  youJudged: 'Ditt betyg är protokollfört.',
+  youJudged: 'Ditt betyg är protokollfört. Talaren får aldrig veta. Alla får veta.',
 } as const
 
 /** TV only. */
 export const TV_STAGE = {
   unlockTitle: 'Der Fernseher är redo',
-  unlockText: 'Ett tryck slår på ljudet. Därefter sköter protokollet resten.',
+  unlockText: 'Ett tryck slår på ljudet. Därefter sköter protokollet resten, och ingen rör der Fernseher igen.',
   unlockButton: 'Starta kvällen',
   idle: 'Kvällen inväntar start. Tryck på "Starta kvällen" i telefonen.',
 } as const

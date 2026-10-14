@@ -17,7 +17,8 @@ export function DrinkPad({ identity, tally }: { identity: Identity; tally: Tally
     setPending(kind)
     try {
       await getApi().logDrink(identity, kind)
-      toast({ text: DRINK_LOGGED[kind], tone: kind === 'wasser' ? 'info' : 'win', ms: 2500 })
+      const lines = DRINK_LOGGED[kind]
+      toast({ text: lines[tally.counts[kind] % lines.length], tone: kind === 'wasser' ? 'info' : 'win', ms: 2500 })
     } catch (err) {
       reportError(err)
     } finally {

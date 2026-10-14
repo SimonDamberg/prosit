@@ -20,7 +20,7 @@ export const AWARDS: Record<AwardKey, AwardCopy> = {
   schnaps: {
     title: 'Schnapsdrossel',
     value: (n) => `${n} Schnaps`,
-    citation: 'För tjänster åt den kontinentala brännvinskulturen.',
+    citation: 'För tjänster åt den kontinentala brännvinskulturen. Levern har underrättats.',
   },
   massvoll: {
     title: 'Ritter der Mäßigung',
@@ -50,7 +50,7 @@ export const AWARDS: Record<AwardKey, AwardCopy> = {
   orakel: {
     title: 'Orakel von Oktoberfest',
     value: (n) => `närmast ${n} gånger`,
-    citation: 'För bildning, eller för gissningar som liknar bildning.',
+    citation: 'För bildning, eller för gissningar som på håll liknar bildning.',
   },
   orator: {
     title: 'Redner des Abends',
@@ -82,7 +82,7 @@ export const FINALE = {
   strafen: 'Strafen',
   points: 'Poäng',
   awards: 'Utmärkelser',
-  goodnight: 'Gute Nacht. Mötet är avslutat.',
+  goodnight: 'Gute Nacht. Mötet är avslutat. Nästa sammanträde: när törsten kallar.',
 } as const
 
 /** The phone's ended screen. */

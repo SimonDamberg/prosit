@@ -59,4 +59,11 @@ export const VOTES: readonly Vote[] = [
   { question: 'Vem i klubben skulle fastna i hissen på väg hit?', title: 'Klubbens Aufzugsgefangener' },
   { question: 'Vem i klubben skulle stämma protokollet för förtal?', title: 'Klubbens Rechtsanwalt' },
   { question: 'Vem i klubben har en bekant på departementet som ordnar saken?', title: 'Klubbens Lobbyist' },
+  { question: 'Vem i klubben skulle ropa "gg ez" efter att ha kommit sist?', title: 'Klubbens Großmaul' },
+  { question: 'Vem i klubben skulle buga för bartendern och tappa sin plats i kön?', title: 'Klubbens Verbeuger' },
+  { question: 'Vem i klubben blir portad och sedan inbjuden tillbaka?', title: 'Klubbens Stammgast wider Willen' },
+  { question: 'Vem i klubben har fler Magic-kort än vänner?', title: 'Klubbens Kartenmagier' },
+  { question: 'Vem i klubben frågar vad andraplatsen ger innan tävlingen börjat?', title: 'Klubbens Zweitplatzjäger' },
+  { question: 'Vem i klubben har en kontakt på Rosenbad som alltid svarar?', title: 'Klubbens Mamakind' },
+  { question: 'Vem i klubben skulle beställa en Radler och kalla det öl?', title: 'Klubbens Radlerfahrer' },
 ]

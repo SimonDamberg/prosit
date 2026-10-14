@@ -36,6 +36,8 @@ export const RULES = [
   'Ingen lutar sig mot ryggstödet',
   'Armbågarna hålls borta från bordet',
   'Engelska ord är förbjudna, ohne Ausnahme',
+  'Den som nämner sin stegräknare tar en klunk',
+  'Ingen beställer något med "light" i namnet',
   // Member themes, from the running jokes in Rally75 (natcasino kuskar.ts). Simon may veto.
   'Den som skyller på lagg tar en klunk',
   'Ingen hotar med förtal eller advokat',
@@ -43,6 +45,14 @@ export const RULES = [
   'Allt som uppfunnits efter 1918 ska ursäktas när det nämns',
   'Ingen blundar, tupplurar räknas som frånvaro',
   'Den som ropar "droppar slak" förklarar vad det betyder',
+  'Den som ropar "gg ez" ber förlorarna om ursäkt',
+  'Den som kör om någon i kön till baren bugar först',
+  'Den som luktar pappersbruk sitter närmast fönstret',
+  'Ingen erbjuder "vad som helst" för en fördel',
+  'Ingen nämner Magic-kort, inte heller Simon',
+  'Den som fastnar i en hiss anmäler det till protokollet',
+  'Den som nämner pengar hänvisas till Palms advokat',
+  'Ingen frågar vad andraplatsen ger',
 ] as const
 
 /** The reason on a Strafe for breaking the rule that is in force. */

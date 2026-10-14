@@ -10,6 +10,7 @@ import type {
 } from "../lib/types";
 import { ABSTIMMUNG, REGEL, TV_STAGE } from "../shared/content/events";
 import {
+  STADGAR,
   TV_EMPTY,
   TV_ENDED,
   TV_JOIN,
@@ -35,6 +36,9 @@ import { MemberBars } from "./MemberBars";
 import { PaceTimeline } from "./PaceTimeline";
 import { StrafeRegister } from "./StrafeRegister";
 import { fmtTime } from "./time";
+
+/** How long each statute holds the header. On server time, so every TV shows the same one. */
+const STATUTE_MS = 30_000;
 
 interface DashboardProps {
   night: NightRow;
@@ -189,6 +193,7 @@ export function Dashboard({
             <span className="tracking-[0.18em] text-messing-deep uppercase">
               {BRAND.motto}
             </span>
+            {!ended && <> · {STADGAR[Math.floor(now / STATUTE_MS) % STADGAR.length]}</>}
           </p>
         </div>
         <p className="text-tv-lg leading-none font-black text-koenig tabular-nums">

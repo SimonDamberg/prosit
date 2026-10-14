@@ -8,12 +8,12 @@ export const JOIN = {
   colourLabel: 'Färg i protokollet',
   colourTaken: 'upptagen',
   submit: 'Skriv in mig',
-  full: 'Alla färger är upptagna. Klubben är fullsatt.',
-  welcome: (name: string) => `Willkommen, ${name}! Du är inskriven i matrikeln.`,
+  full: 'Alla färger är upptagna. Klubben är fullsatt, precis som stadgarna föreskriver.',
+  welcome: (name: string) => `Willkommen, ${name}! Du är inskriven i matrikeln. Västen knäpps.`,
 } as const
 
 export const HOME = {
-  greeting: 'Ordinarie medlem',
+  greeting: 'Medlem i god ställning',
   drinksTitle: 'Protokollför en dryck',
   undo: 'Ångra senaste',
   undone: 'Struket ur protokollet. Det har aldrig hänt.',
@@ -37,7 +37,7 @@ export const STRAFE_SHEET = {
   who: 'Vem har förbrutit sig?',
   why: 'Motivering',
   ownReason: 'Egen motivering',
-  ownPlaceholder: 'Brottets art ...',
+  ownPlaceholder: 'Brottets art och omfattning ...',
   submit: 'Verkställ Strafe',
   cancel: 'Nåd',
   given: (name: string) => `Strafe utdelad till ${name}. Ordnung muss sein.`,
@@ -49,20 +49,20 @@ export const ENDED = {
 } as const
 
 export const PHONE_LOADING = {
-  data: 'Protokollet hämtas',
-  member: 'Matrikeln kontrolleras',
+  data: 'Protokollet hämtas ur arkivet',
+  member: 'Matrikeln granskas av styrelsen',
 } as const
 
 /** Starting over: any member can, there is no game master. */
 export const RESET = {
   title: 'Klubbens förvaltning',
   button: 'Ny kväll',
-  text: 'Nollställer protokollet: drycker, Strafen, poäng och händelser stryks.',
-  confirmTitle: 'Börja om från noll?',
+  text: 'Nollställer protokollet: drycker, Strafen, poäng och händelser stryks, som om kvällen aldrig ägt rum. Det kommer flera att önska.',
+  confirmTitle: 'Börja om från noll? Historien skrivs om.',
   confirmText: 'Allt i protokollet stryks för gott. Matrikeln behålls om du inte väljer annat.',
   wipe: 'Stryk även matrikeln',
   wipeHint: 'Alla telefoner loggas ut och var och en skriver in sig på nytt. Bra före festen, om någon skrivit in sig två gånger.',
   confirm: 'Ja, nollställ',
-  cancel: 'Avbryt',
+  cancel: 'Nein, historien får stå',
   done: 'Protokollet är nollställt. Så har vi alltid gjort.',
 } as const
