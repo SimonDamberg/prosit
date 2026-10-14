@@ -8,8 +8,8 @@ export interface Question {
 }
 
 export const QUESTIONS: readonly Question[] = [
-  { question: 'Vilket år utfärdades den bayerska renhetslagen, das Reinheitsgebot?', answer: 1516, unit: '' },
-  { question: 'Hur många ingredienser tillät Reinheitsgebot i ölet?', answer: 3, unit: 'ingredienser' },
+  { question: 'Vilket år utfärdades den bayerska renhetslagen?', answer: 1516, unit: '' },
+  { question: 'Hur många ingredienser tillät renhetslagen i ölet?', answer: 3, unit: 'ingredienser' },
   { question: 'Vilket år hölls den första Oktoberfest i München?', answer: 1810, unit: '' },
   { question: 'Hur många centiliter rymmer en Maß?', answer: 100, unit: 'cl' },
   { question: 'Vilket år grundade hertig Wilhelm V bryggeriet Hofbräuhaus i München?', answer: 1589, unit: '' },

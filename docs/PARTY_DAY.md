@@ -6,7 +6,7 @@ For Simon, on the day. Everything here happens on the deployed site, never again
 
 1. **Wake the database.** The free Supabase plan pauses a project after a week without traffic.
    Open the Supabase dashboard, check that the project `prosit` is running ("Restore" if paused),
-   then open the site once on a phone and see the join screen (not "Keine Verbindung").
+   then open the site once on a phone and see the join screen (not "Ingen anslutning").
 2. **Real phones.** Join from an iPhone on the deployed URL. In Safari: Share, "Lägg till på
    hemskärmen", so it opens full screen with the shield icon. Try a Duell between two phones.
 3. **The TV laptop.** Chrome, `/tv`, tap "Starta kvällen" and listen: the bell, then the
@@ -33,7 +33,7 @@ For Simon, on the day. Everything here happens on the deployed site, never again
 - Lost a phone, swapped it or cleared its data? Don't join again. On any joined phone:
   "Matrikeln", "Visa ett medlemskort", pick the member, and scan the QR with the new phone (or
   type the code on its join screen). Drinks and Strafen stay; the old phone loses its place.
-- The TV says "Keine Verbindung": it retries by itself. Check the Wi-Fi.
+- The TV says "Ingen anslutning": it retries by itself. Check the Wi-Fi.
 - The music stops: reload `/tv` and tap "Starta kvällen" again. The night carries on.
 
 ## The finale

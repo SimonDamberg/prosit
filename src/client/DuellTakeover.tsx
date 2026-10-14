@@ -10,7 +10,7 @@ import { useAnswer } from './useAnswer'
 type DuellProps = TakeoverProps & { payload: Extract<EventPayload, { kind: 'duell' }> }
 
 /**
- * A Duell on the phone. The two duellists get one pad: it says wait, then "Zieh!", and the first
+ * A Duell on the phone. The two duellists get one pad: it says wait, then "Dra!", and the first
  * to hit it after that wins. Everybody else picks a winner until the draw.
  */
 export function DuellTakeover({ event, payload, identity, members }: DuellProps) {
@@ -26,7 +26,7 @@ export function DuellTakeover({ event, payload, identity, members }: DuellProps)
   useEffect(() => {
     // `now` changes when the clock offset has been measured. A phone whose own clock runs ahead
     // may have shown the draw too early by then, so take it back: a tap on a pad that says
-    // "Zieh!" is recorded as a reaction of 0 ms, whatever the server clock says.
+    // "Dra!" is recorded as a reaction of 0 ms, whatever the server clock says.
     const recheck = setTimeout(() => {
       if (now() < drawAt) setDrawn(false)
     }, 0)

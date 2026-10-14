@@ -70,7 +70,7 @@
   --animate-stage-out: stage-out 0.4s ease-in both;
   /* A result: the sign turns over. */
   --animate-flip-in: flip-in 0.5s ease-out both;
-  /* PROSIT! and "Zieh!": the word lands hard, shakes, then flashes blue and red. */
+  /* PROSIT! and "Dra!": the word lands hard, shakes, then flashes blue and red. */
   --animate-prosit: stomp 0.7s 0.3s ease-out both, alarm 0.6s 1s steps(1, end) infinite;
   --animate-slam: stomp 0.4s ease-out both, alarm 0.6s 0.4s steps(1, end) infinite;
   /* One or two blinks of a full-screen colour. Put it on an overlay, never on content. */

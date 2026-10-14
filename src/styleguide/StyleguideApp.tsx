@@ -309,7 +309,7 @@ function Modals() {
         title="Skålen är avgjord"
         tone={open?.tone}
         band={open?.band}
-        actions={<Button onClick={() => setOpen(null)}>Weiter</Button>}
+        actions={<Button onClick={() => setOpen(null)}>Vidare</Button>}
       >
         <p className={cx('text-xl font-bold', open?.tone === 'danger' && open.band && 'animate-stamp text-strafe')}>
           Zu langsam! Du får en Strafe.

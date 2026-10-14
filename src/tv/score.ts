@@ -101,7 +101,7 @@ export const CUES = {
     note('tuba', 'D2', 1.2, 1),
     note('drum', 60, 1.2, 0.5),
   ],
-  /** "Zieh!": a crack and a stab. Short, because the duellists are already moving. */
+  /** "Dra!": a crack and a stab. Short, because the duellists are already moving. */
   draw: [note('snare', 1800, 0, 0.22), note('knock', 1400, 0, 0.1), ...chord('brass', ['A4', 'E5', 'A5'], 0, 0.3)],
   /** A vote: the herald's rising triad. */
   abstimmung: [

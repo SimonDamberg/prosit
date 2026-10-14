@@ -9,7 +9,7 @@ export const JOIN = {
   colourTaken: 'upptagen',
   submit: 'Skriv in mig',
   full: 'Alla färger är upptagna. Klubben är fullsatt, precis som stadgarna föreskriver.',
-  welcome: (name: string) => `Willkommen, ${name}! Du är inskriven i matrikeln. Västen knäpps.`,
+  welcome: (name: string) => `Välkommen, ${name}! Du är inskriven i matrikeln. Västen knäpps.`,
   lostPhone: 'Redan inskriven men ny telefon? Be en broder visa ditt medlemskort, eller skriv in koden här.',
   codeLabel: 'Kod från medlemskortet',
   codePlaceholder: 'ABCD1234',
@@ -48,7 +48,7 @@ export const STRAFE_SHEET = {
 } as const
 
 export const ENDED = {
-  title: 'Gute Nacht',
+  title: 'God natt',
   text: 'Kvällen är avslutad och protokollet är stängt. Herr Präsident tackar för visad törst.',
 } as const
 
@@ -67,7 +67,7 @@ export const RESET = {
   wipe: 'Stryk även matrikeln',
   wipeHint: 'Alla telefoner loggas ut och var och en skriver in sig på nytt. Bra före festen, om någon skrivit in sig två gånger.',
   confirm: 'Ja, nollställ',
-  cancel: 'Nein, historien får stå',
+  cancel: 'Nej, historien får stå',
   done: 'Protokollet är nollställt. Så har vi alltid gjort.',
 } as const
 

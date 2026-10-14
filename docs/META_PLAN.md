@@ -22,7 +22,7 @@ between those sessions.
 | Players  | Five club members. Join by QR on the TV, name plus colour. `{memberId, token}` in localStorage.                                    |
 | Control  | No GM, no password. Any member can start the night, change the event interval, end the night.                                      |
 | Devices  | TV at `/tv` (landscape, readable across a room, nothing to tap after the start). Phones at `/` (portrait).                         |
-| Language | Swedish with over-the-top fake German (Prosit, Maß, Strafe, Herr Präsident). All user-facing text, including errors. No em dashes. |
+| Language | Swedish, all user-facing text, including errors. German only for the well-known Oktoberfest words (Prosit, Maß, Bier, Schnaps, Jawohl, Herr Präsident), the event names, Strafe, Wasser and the Herold's shouts (cut back from "over-the-top fake German" after the language pass, at Simon's request). No em dashes. |
 | Club     | **Svarta Västarna**, motto "Natura Statera".                                                                                       |
 | Look     | Traditional Bavarian white and blue, light theme. Must not resemble Rally75.                                                       |
 | Humour   | The club as a pompous, arch-conservative Herrenklubb: mock-solemn statutes, mock women and women rights,                           |
@@ -36,7 +36,7 @@ alltid gjort". Bavarian beer-hall kitsch. **Nazi-themed jokes** is always apprie
 | Drinks | Öl, Maß, Schnaps, Wasser. Self-reported, with undo. Wasser counts and earns its own award. |
 | Finale | "Avsluta kvällen" runs an awards ceremony on the TV, computed from the night's log. |
 | Trust | Five friends. RPCs check the member token and nothing more. |
-| Network | Required. Clear "Keine Verbindung" states with auto-retry. No offline mode. |
+| Network | Required. Clear "Ingen anslutning" states with auto-retry. No offline mode. |
 | Stack | Vite + React + TypeScript + Tailwind v4 + React Router + Vitest + `@supabase/supabase-js`, on Vercel. Same as Rally75. |
 | Code | New repo, pieces copied from `../natcasino` (never imported across repos). |
 | Timeline | Party on the weekend of 17 Oct. Stages 1-3 are the must-haves; each stage ends deployable. |
@@ -64,7 +64,7 @@ alltid gjort". Bavarian beer-hall kitsch. **Nazi-themed jokes** is always apprie
   supabase/migrations/*.sql
   scripts/bots.ts     five fake members for end-to-end checks
   src/
-    shared/content/   Swedish/German copy and pools (rules, votes, questions, awards). Data only.
+    shared/content/   Swedish copy and pools (rules, votes, questions, awards). Data only.
     shared/game/      Pure logic: rng, schedule, resolve, achievements, awards, types.
     lib/              Supabase client, typed RPC wrappers, realtime hooks, clock, identity, useEngine.
     ui/               Design-system components shared by phone and TV.

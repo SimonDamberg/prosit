@@ -29,7 +29,7 @@ export const TOAST_TOPICS = [
   'Till västens knappar, som håller emot än så länge',
   'Mot appen som vill ersätta plånboken',
   'Till Herr Kassör, som räknar fel med värdighet',
-  'Till den söta senapen, som det anstår en Weißwurst',
+  'Till den söta senapen, som det anstår en vitkorv',
   'Mot den vita månaden och andra påfund',
   'Till ordningsfrågan, mötets ädlaste vapen',
   'Till Maßkruget, tyngre än alla våra plikter',
@@ -38,7 +38,7 @@ export const TOAST_TOPICS = [
   'Till årsmötet, som alltid drar över tiden',
   'Till takten, som vi aldrig har hållit',
   'Mot stegräknaren, som räknar fel håll',
-  'Till Weißwursten, som aldrig får höra klockan tolv',
+  'Till vitkorven, som aldrig får höra klockan tolv',
   'Mot molnet, där ingen gentleman förvarar något',
   // Member themes, from the running jokes in Rally75 (natcasino kuskar.ts). Simon may veto.
   'Till Jesper, som minns när ölet uppfanns',

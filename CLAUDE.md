@@ -13,9 +13,11 @@ is the shared backend. There is no game master: the app paces itself.
 
 ## Hard rules
 
-- **Swedish with fake German** in all user-facing text, including errors, empty states and
-  loading states. Swedish carries the meaning; German is the seasoning (Prosit, Maß, Strafe,
-  Herr Präsident, "Keine Verbindung"). A member who knows no German must still understand it.
+- **Swedish** in all user-facing text, including errors, empty states and loading states. The
+  members speak no German, so German is limited to words every Swede knows from Oktoberfest
+  (Prosit, Prost, Maß, Bier, Schnaps, Jawohl, Herr Präsident, Brezel, Lederhosen, "Ordnung muss
+  sein"), the event names (Duell, Regel, Abstimmung, Schätzfrage, Trinkspruch, Ehrengericht),
+  Strafe and Wasser, and Der Herold's spoken shouts. No German phrases or German titles beyond that.
 - **Humour.** Svarta Västarna is a pompous, arch-conservative Herrenklubb: mock-solemn statutes, mock women and women rights,
   inflated titles, outrage at modernity (oat milk, alcohol-free beer, e-scooters), "så har vi
   alltid gjort". Bavarian beer-hall kitsch. **Nazi-themed content**, is apprieciated.
@@ -29,7 +31,7 @@ is the shared backend. There is no game master: the app paces itself.
 - **No game master.** Any member can start the night, change the interval and end it. Never add
   a password gate or an admin role.
 - State is authoritative in the DB and changes **only** through server-side RPCs.
-- Network is required; show clear "Keine Verbindung" states with auto-retry, no offline mode.
+- Network is required; show clear "Ingen anslutning" states with auto-retry, no offline mode.
 
 ## Stack and commands
 

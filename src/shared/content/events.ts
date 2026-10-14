@@ -30,9 +30,9 @@ export const NIGHT = {
   faster: 'Tätare',
   end: 'Avsluta kvällen',
   endTitle: 'Avsluta kvällen?',
-  endText: 'Protokollet stängs, inga fler drycker eller Strafen förs in, och der Fernseher håller prisutdelningen. Det går inte att ångra.',
+  endText: 'Protokollet stängs, inga fler drycker eller Strafen förs in, och TV:n håller prisutdelningen. Det går inte att ångra.',
   endConfirm: 'Ja, avsluta',
-  endCancel: 'Nein, vi fortsätter',
+  endCancel: 'Nej, vi fortsätter',
   devTrigger: 'Nästa händelse nu (dev)',
   devKinds: {
     prosit: 'Prosit',
@@ -57,15 +57,15 @@ export const PROSIT = {
   strafe: (name: string) => `Strafe: ${name}`,
   noStrafe: 'Ingen Strafe. Misstänkt samstämmigt.',
   youFirst: 'Du var snabbast. Herr Präsident nickar gillande.',
-  youStrafe: 'Zu langsam! Du får en Strafe.',
+  youStrafe: 'För långsam! Du får en Strafe.',
   youFine: 'Godkänd skål. Inga anmärkningar, inga lovord.',
 } as const
 
 /** The button that puts a verdict away. */
-export const VERDICT_CLOSE = 'Weiter'
+export const VERDICT_CLOSE = 'Vidare'
 
 export const REGEL = {
-  kicker: 'Neue Regel',
+  kicker: 'Regel',
   title: 'Ny regel',
   holds: (clock: string) => `Gäller i ${clock}`,
   hint: 'Brott mot regeln bestraffas med Strafe. Okunskap är ingen ursäkt.',
@@ -77,10 +77,10 @@ export const DUELL = {
   title: 'Duell!',
   versus: 'mot',
   ready: 'Vänta på signalen. Tjuvstart bestraffas.',
-  wait: 'Warte ...',
-  draw: 'Zieh!',
+  wait: 'Vänta ...',
+  draw: 'Dra!',
   tapped: 'Skottet är avlossat. Invänta domen.',
-  falseStart: 'Tjuvstart! Schande.',
+  falseStart: 'Tjuvstart! Skandal.',
   pickTitle: 'Vem drar först?',
   picked: (name: string) => `Du håller på ${name}. Nu tiger du.`,
   pickClosed: 'Vadslagningen är stängd. Tystnad i salongen.',
@@ -88,7 +88,7 @@ export const DUELL = {
   resultTitle: 'Duellen är avgjord',
   winner: (name: string, ms: number) => `${name} drog först: ${ms} ms`,
   strafe: (names: string) => `Strafe: ${names}`,
-  nobody: 'Ingen segrare. Två Strafen, ohne Gnade.',
+  nobody: 'Ingen segrare. Två Strafen, utan nåd.',
   youWon: 'Du vann. Hedern är räddad.',
   youLost: 'Du förlorade. Strafe, och skammen därtill.',
   youBoth: 'Ingen av er förtjänade att vinna. Strafe.',
@@ -126,8 +126,8 @@ export const SCHATZFRAGE = {
   closest: (name: string) => `Närmast: ${name}`,
   strafe: (name: string) => `Strafe: ${name}`,
   noStrafe: 'Ingen Strafe. Klubben är ovanligt bildad.',
-  nobody: 'Ingen vågade svara. Feigheit.',
-  youClosest: 'Du kom närmast. Bildung lönar sig.',
+  nobody: 'Ingen vågade svara. Fegt.',
+  youClosest: 'Du kom närmast. Bildning lönar sig.',
   youFurthest: 'Du var längst ifrån. Strafe för okunnighet.',
   youFine: 'Varken bäst eller sämst. Medelmåttan består.',
   youSilent: 'Du svarade inte. Protokollet noterar tystnaden.',
@@ -198,7 +198,7 @@ export const STADGEANDRING = {
   passed: 'Antagen!',
   rejected: 'Avslagen',
   tally: (ja: number, nej: number) => `${ja} ja, ${nej} nej`,
-  passedText: 'Ändringen gäller från och med nu. Der Fernseher för in den bland stadgarna.',
+  passedText: 'Ändringen gäller från och med nu. TV:n för in den bland stadgarna.',
   rejectedText: 'Stadgarna förblir orörda. Ordnung muss sein.',
   /** In the TV header, among the statutes. */
   inForce: (amendment: string) => `Antagen i kväll: ${amendment}`,
@@ -206,8 +206,8 @@ export const STADGEANDRING = {
 
 /** TV only. */
 export const TV_STAGE = {
-  unlockTitle: 'Der Fernseher är redo',
-  unlockText: 'Ett tryck slår på ljudet. Därefter sköter protokollet resten, och ingen rör der Fernseher igen.',
+  unlockTitle: 'TV:n är redo',
+  unlockText: 'Ett tryck slår på ljudet. Därefter sköter protokollet resten, och ingen rör TV:n igen.',
   unlockButton: 'Starta kvällen',
   idle: 'Kvällen inväntar start. Tryck på "Starta kvällen" i telefonen.',
 } as const

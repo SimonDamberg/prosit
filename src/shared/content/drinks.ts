@@ -25,7 +25,7 @@ export const DRINK_ICONS: Record<DrinkKind, string> = {
 
 /** Toast after the Maß that makes a Wasser due (wasserDue). Cycled like DRINK_LOGGED. */
 export const WASSER_NUDGE = [
-  'Tre Maß utan Wasser. Styrelsen protesterar, men läkaren insisterar. Ein Wasser, bitte.',
+  'Tre Maß utan Wasser. Styrelsen protesterar, men läkaren insisterar. Ett Wasser, tack.',
   'Klubbens läkare har yttrat sig: ett glas Wasser. Protokollet suckar men lyder.',
   'Tre Maß i rad. Ett Wasser nu är ingen modernitet, det är underhåll.',
 ] as const
@@ -33,24 +33,24 @@ export const WASSER_NUDGE = [
 /** Toast after a "+1". The phone cycles through each kind's lines, so the joke does not wear out. */
 export const DRINK_LOGGED: Record<DrinkKind, readonly string[]> = {
   ol: [
-    'Ein Bier fört till protokollet. Prosit!',
+    'Ett Bier fört till protokollet. Prosit!',
     'Ett Bier till. Bryggaren tackar för förtroendet.',
     'Bier antecknat. Så har vi alltid gjort.',
-    'Protokollfört. Das Reinheitsgebot är nöjt.',
+    'Protokollfört. Renhetslagen är nöjd.',
   ],
   mass: [
-    'Eine Maß fört till protokollet. Jawohl!',
+    'En Maß fört till protokollet. Jawohl!',
     'En hel liter. Herr Präsident lyfter på hatten.',
     'Maß antecknad. Armen tränas, själen likaså.',
-    'Eine Maß! Stolarna i salongen darrar av respekt.',
+    'En Maß! Stolarna i salongen darrar av respekt.',
   ],
   schnaps: [
-    'Ein Schnaps fört till protokollet. Zack!',
+    'En Schnaps fört till protokollet. Pang!',
     'Schnaps antecknad. Rakt ner, utan att blinka.',
     'Ett litet glas, en stor insats för klubben.',
   ],
   wasser: [
-    'Ein Wasser antecknat. Styrelsen ser allvarligt på saken.',
+    'Ett Wasser antecknat. Styrelsen ser allvarligt på saken.',
     'Wasser? Protokollet noterar detta med bestörtning.',
     'Vatten antecknat. Havremjölken är nästa steg, varnar styrelsen.',
     'Wasser antecknat. Brottet preskriberas vid nästa Maß.',

@@ -2,7 +2,7 @@
 
 export const TV_JOIN = {
   title: 'Skanna och skriv in dig',
-  text: 'Rikta telefonen mot koden. Der Fernseher sköter resten, som en pålitlig betjänt.',
+  text: 'Rikta telefonen mot koden. TV:n sköter resten, som en pålitlig betjänt.',
   qrLabel: 'QR-kod till telefonappen',
   corner: 'Anslut',
 } as const
@@ -41,7 +41,7 @@ export const TV_STRAFEN = {
   toast: (name: string, reason: string) => `Strafe till ${name}: ${reason}`,
 } as const
 
-export const TV_ENDED = 'Kvällen är avslutad. Gute Nacht.'
+export const TV_ENDED = 'Kvällen är avslutad. God natt.'
 
 export const TV_DATA_LOADING = 'Protokollet hämtas ur arkivet'
 
@@ -77,7 +77,7 @@ export const STADGAR = [
 /** Machtwechsel: the points lead changes hands. */
 export const TV_CROWN = {
   label: 'Leder poängligan',
-  toast: (name: string) => `Machtwechsel! ${name} tar makten i poängligan.`,
+  toast: (name: string) => `Maktskifte! ${name} tar makten i poängligan.`,
 } as const
 
 /**
