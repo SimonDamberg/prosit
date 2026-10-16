@@ -7,11 +7,6 @@ export const TV_JOIN = {
   corner: 'Anslut',
 } as const
 
-export const TV_EMPTY = {
-  title: 'Matrikeln är tom',
-  text: 'Ingen medlem har ännu infunnit sig. Herr Präsident väntar, och antecknar.',
-} as const
-
 export const TV_BARS = {
   title: 'Ställningen',
   // Capital: a lowercase l reads as a one next to the digits.
@@ -81,8 +76,8 @@ export const TV_CROWN = {
 } as const
 
 /**
- * Der Herold: what the TV reads aloud, in a Swedish voice (German if there is none). Swedish
- * lines, German shouts. Short, so a line is over before the room has stopped laughing.
+ * Der Herold: what the TV reads aloud, in a German voice (Swedish if there is none). Swedish
+ * words, German accent: that is the joke. Short, so a line is over before the room has stopped laughing.
  */
 export const HEROLD = {
   strafe: (name: string, reason: string) => `Achtung! Strafe für ${name}. ${reason}.`,

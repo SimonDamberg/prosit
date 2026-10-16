@@ -13,7 +13,6 @@ import {
   HEROLD,
   STADGAR,
   TV_CROWN,
-  TV_EMPTY,
   TV_ENDED,
   TV_JOIN,
   TV_STRAFEN,
@@ -261,11 +260,9 @@ export function Dashboard({
         <div className="flex min-h-0 flex-1 items-center justify-center gap-16">
           <Crest size="tv" className="shrink-0" />
           <div className="flex max-w-2xl flex-col gap-6">
-            <p className="text-tv-sm font-bold text-strafe">{TV_EMPTY.title}</p>
             <h2 className="font-display text-tv-xl leading-none font-bold text-koenig">
               {TV_JOIN.title}
             </h2>
-            <p className="text-tv-md text-weste">{TV_EMPTY.text}</p>
             <p className="text-tv-sm text-weste-dim">{TV_JOIN.text}</p>
           </div>
           <div className="sign shrink-0 p-5">

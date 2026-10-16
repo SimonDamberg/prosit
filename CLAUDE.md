@@ -192,8 +192,8 @@ plates, no condensed uppercase sans, no chunky sinking buttons).
   starts (false means: play the synth cue instead) and `setStageBusy()` to duck the background
   while any event has the stage and to return to it afterwards.
 - **Der Herold** (`src/tv/herold.ts`): the TV reads verdicts, hand-given Strafen, achievements,
-  awards and a Machtwechsel aloud with `speechSynthesis` in a Swedish voice, German as fallback (lines in `HEROLD`,
+  awards and a Machtwechsel aloud with `speechSynthesis` in a German voice, Swedish as fallback (lines in `HEROLD`,
   `src/shared/content/tv.ts`). Primed by the unlock tap, ducks the background, silent without
-  a Swedish or German voice, off with `VITE_HEROLD=off`. Call `say(line, delayMs)` after the cue, never over it.
+  a German or Swedish voice, off with `VITE_HEROLD=off`. Call `say(line, delayMs)` after the cue, never over it.
 - `/styleguide` (dev only) shows all of it. `/styleguide?stage=prosit-live` is one stage alone at
   full size; the scene names are in `src/styleguide/fixtures.ts`. Add a scene for a new stage.

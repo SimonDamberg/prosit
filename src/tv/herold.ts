@@ -1,6 +1,6 @@
 // Der Herold: the TV reads verdicts, Strafen and honours aloud with the browser's speech
-// synthesis. The lines are Swedish with German shouts, so a Swedish voice reads them; a German
-// one is the fallback. Never the browser's default voice, which is usually English. Synthesized like every other TV sound (no files), TV only, and
+// synthesis, in a German voice: Swedish lines with a German accent, that is the joke. A Swedish
+// voice is the fallback. Never the browser's default voice, which is usually English. Synthesized like every other TV sound (no files), TV only, and
 // silent where the browser has no voices. Off with VITE_HEROLD=off.
 import type { MemberRow } from '../lib/types'
 import { HEROLD } from '../shared/content/tv'
@@ -16,15 +16,18 @@ const PITCH = 0.85
 
 let primed = false
 
-/** The best Swedish voice the browser has, else a German one, else none. Voices load late in Chrome. */
+/** The best German voice the browser has, else a Swedish one, else none. Voices load late in Chrome. */
 function heroldVoice(): SpeechSynthesisVoice | null {
   const voices = speechSynthesis.getVoices()
   const lang = (v: SpeechSynthesisVoice) => v.lang.replace('_', '-').toLowerCase()
   return (
+    // Reed, then Anna (the Mac voices the club chose), then whatever German the browser has.
+    voices.find((v) => lang(v) === 'de-de' && /^reed\b/i.test(v.name)) ??
+    voices.find((v) => lang(v) === 'de-de' && /^anna\b/i.test(v.name)) ??
+    voices.find((v) => lang(v) === 'de-de' && /google|markus|yannick/i.test(v.name)) ??
+    voices.find((v) => lang(v).startsWith('de')) ??
     voices.find((v) => lang(v) === 'sv-se' && /google|alva|klara|oskar|sofie|mattias/i.test(v.name)) ??
     voices.find((v) => lang(v).startsWith('sv')) ??
-    voices.find((v) => lang(v) === 'de-de' && /google|anna|markus|yannick/i.test(v.name)) ??
-    voices.find((v) => lang(v).startsWith('de')) ??
     null
   )
 }
@@ -41,7 +44,7 @@ export function primeHerold() {
 export function say(text: string, delayMs = 0) {
   if (!ENABLED || !primed || !text) return
   setTimeout(() => {
-    // No Swedish or German voice: stay silent rather than read Swedish in English.
+    // No German or Swedish voice: stay silent rather than read Swedish in English.
     const voice = heroldVoice()
     if (!voice) return
     const line = new SpeechSynthesisUtterance(text)
