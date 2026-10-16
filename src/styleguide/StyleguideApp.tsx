@@ -1,10 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useServerNow } from '../lib/hooks'
+import { HEROLD } from '../shared/content/tv'
 import { BRAND } from '../shared/content/ui'
 import { measureCue, play, unlockAudio } from '../tv/audio'
 import { AchievementPopup } from '../tv/AchievementPopup'
 import { StageFrame } from '../tv/EventStage'
 import { Finale } from '../tv/Finale'
+import { heroldVoiceName, primeHerold, say } from '../tv/herold'
 import { MUSIC, musicState, playProsit, setStageBusy, startMusic, stopProsit } from '../tv/music'
 import { CUE_NAMES, CUES, cueLength, type CueName } from '../tv/score'
 import { Chip } from '../tv/stages/Chip'
@@ -217,13 +219,13 @@ function Music() {
     <Section title="Musik (YouTube, endast TV:n)">
       <div className="flex flex-wrap gap-2">
         <Button variant="quiet" onClick={run(startMusic)}>
-          Starta spellistan
+          Starta bakgrundsmusiken
         </Button>
         <Button variant="quiet" onClick={run(playProsit)}>
           Ein Prosit!
         </Button>
         <Button variant="quiet" onClick={run(stopProsit)}>
-          Tillbaka till spellistan
+          Tillbaka till bakgrunden
         </Button>
         <Button variant="ghost" onClick={run(() => setStageBusy(true))}>
           Dämpa
@@ -239,6 +241,35 @@ function Music() {
         Bakgrund {MUSIC.background} ({state.bandReady ? 'redo' : state.started ? 'laddar' : 'ej startad'}), Prosit-video {state.video} (
         {state.singerReady ? 'redo' : 'ej redo'}){state.singing ? ', sjunger' : ''}
       </p>
+    </Section>
+  )
+}
+
+const HEROLD_LINES = [
+  HEROLD.strafe('Palm', 'Kallade Maßen för en stor öl'),
+  HEROLD.machtwechsel('Palm'),
+  HEROLD.prosit('Palm', 'Berg'),
+  HEROLD.ehrengericht('Palm', true),
+  HEROLD.stadgeandring(false),
+]
+
+function Herold() {
+  const [voice, setVoice] = useState<string | null>(null)
+  const speak = (line: string) => () => {
+    primeHerold()
+    say(line)
+    setVoice(heroldVoiceName())
+  }
+  return (
+    <Section title="Der Herold (endast TV:n)">
+      <div className="flex flex-wrap gap-2">
+        {HEROLD_LINES.map((line) => (
+          <Button key={line} variant="quiet" onClick={speak(line)}>
+            {line}
+          </Button>
+        ))}
+      </div>
+      <p className="text-weste-dim">Röst: {voice ?? 'ingen vald än (tryck på en rad)'}</p>
     </Section>
   )
 }
@@ -410,6 +441,7 @@ export default function StyleguideApp() {
       <Modals />
       <Sounds />
       <Music />
+      <Herold />
       <Stages />
       <FinaleScenes />
       <Toaster />

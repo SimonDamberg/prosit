@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { DRINK_LOGGED } from './drinks'
 import { ERROR_MESSAGES } from './errors'
-import { STADGAR } from './tv'
+import { STADGAR } from './stadgar'
 
 const EM_DASH = '\u2014'
 const SRC = join(import.meta.dirname, '..', '..')

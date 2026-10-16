@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { AWARD_REASONS } from '../content/events'
+import { AWARD_REASONS, STADGEANDRING } from '../content/events'
 import { AMENDMENTS, CHARGES } from '../content/charges'
 import { QUESTIONS } from '../content/questions'
-import { STADGAR } from '../content/tv'
+import { STADGAR } from '../content/stadgar'
 import { RULES, ruleBreach } from '../content/rules'
 import { TOAST_TOPICS } from '../content/toasts'
 import { VOTES } from '../content/votes'
@@ -20,6 +20,8 @@ import {
   GAP_MIN,
   nextAction,
   passedAmendments,
+  statuteAt,
+  STATUTE_MS,
   onStage,
   pickFair,
   planEvent,
@@ -555,5 +557,20 @@ describe('nextAction', () => {
     expect(forced.type === 'spawn' && forced.plan.kind).toBe('schatzfrage')
     const prosit = nextAction(base, T0 + 1, 'prosit')
     expect(prosit.type === 'spawn' && prosit.plan.payload).toEqual({ kind: 'prosit' })
+  })
+})
+
+describe('statuteAt', () => {
+  const passed = { seq: 1, payload: { kind: 'stadgeandring' as const, amendment: 'Ny paragraf.' }, result: { kind: 'stadgeandring' as const, passed: true, ja: 3, nej: 2 } }
+
+  it('turns to the next statute every STATUTE_MS, the same on every device', () => {
+    expect(statuteAt([], 0)).toBe(STADGAR[0])
+    expect(statuteAt([], STATUTE_MS - 1)).toBe(STADGAR[0])
+    expect(statuteAt([], STATUTE_MS)).toBe(STADGAR[1])
+    expect(statuteAt([], STADGAR.length * STATUTE_MS)).toBe(STADGAR[0])
+  })
+
+  it('reads tonight\'s passed amendments after the statutes', () => {
+    expect(statuteAt([passed], STADGAR.length * STATUTE_MS)).toBe(STADGEANDRING.inForce('Ny paragraf.'))
   })
 })

@@ -8,10 +8,9 @@ import type {
   PointsRow,
   StrafeRow,
 } from "../lib/types";
-import { ABSTIMMUNG, REGEL, STADGEANDRING, TV_STAGE } from "../shared/content/events";
+import { ABSTIMMUNG, REGEL, TV_STAGE } from "../shared/content/events";
 import {
   HEROLD,
-  STADGAR,
   TV_CROWN,
   TV_ENDED,
   TV_JOIN,
@@ -22,7 +21,7 @@ import { BRAND } from "../shared/content/ui";
 import { computeAchievements } from "../shared/game/achievements";
 import { pointLeaders } from "../shared/game/awards";
 import { strafeTally, sumTallies, tallyDrinks } from "../shared/game/drinks";
-import { passedAmendments, stageEvent } from "../shared/game/schedule";
+import { stageEvent, statuteAt } from "../shared/game/schedule";
 import { fmtClock, fmtLitres } from "../shared/game/format";
 import {
   Crest,
@@ -39,9 +38,6 @@ import { MemberBars } from "./MemberBars";
 import { PaceTimeline } from "./PaceTimeline";
 import { StrafeRegister } from "./StrafeRegister";
 import { fmtTime } from "./time";
-
-/** How long each statute holds the header. On server time, so every TV shows the same one. */
-const STATUTE_MS = 30_000;
 
 interface DashboardProps {
   night: NightRow;
@@ -179,10 +175,6 @@ export function Dashboard({
     [points, members],
   );
   useMachtwechsel(leaders, members);
-  const statutes = useMemo(
-    () => [...STADGAR, ...passedAmendments(events).map(STADGEANDRING.inForce)],
-    [events],
-  );
   const achievements = useMemo(
     () =>
       computeAchievements({
@@ -236,7 +228,7 @@ export function Dashboard({
             <span className="tracking-[0.18em] text-messing-deep uppercase">
               {BRAND.motto}
             </span>
-            {!ended && <> · {statutes[Math.floor(now / STATUTE_MS) % statutes.length]}</>}
+            {!ended && <> · {statuteAt(events, now)}</>}
           </p>
         </div>
         <p className="text-tv-lg leading-none font-black text-koenig tabular-nums">

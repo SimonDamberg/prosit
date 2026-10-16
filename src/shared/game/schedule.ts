@@ -2,8 +2,10 @@
 // same plan for event N from the night's seed, so whichever client writes first writes what the
 // others would have written.
 import { AMENDMENTS, CHARGES } from '../content/charges'
+import { STADGEANDRING } from '../content/events'
 import { QUESTIONS } from '../content/questions'
 import { RULES } from '../content/rules'
+import { STADGAR } from '../content/stadgar'
 import { TOAST_TOPICS } from '../content/toasts'
 import { VOTES } from '../content/votes'
 import { createRng } from './rng'
@@ -215,6 +217,15 @@ export function passedAmendments(events: readonly { seq: number; payload: EventP
   return [...events]
     .sort((a, b) => a.seq - b.seq)
     .flatMap((e) => (e.payload.kind === 'stadgeandring' && e.result?.kind === 'stadgeandring' && e.result.passed ? [e.payload.amendment] : []))
+}
+
+/** How long each statute holds the screen. On server time, so the TV and every phone show the same one. */
+export const STATUTE_MS = 30_000
+
+/** The statute on the screens at `now`: the club's own, then tonight's passed amendments, in turn. */
+export function statuteAt(events: readonly { seq: number; payload: EventPayload; result: EventResult | null }[], now: number): string {
+  const statutes = [...STADGAR, ...passedAmendments(events).map(STADGEANDRING.inForce)]
+  return statutes[Math.floor(now / STATUTE_MS) % statutes.length]
 }
 
 /**

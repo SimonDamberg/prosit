@@ -32,6 +32,9 @@ function heroldVoice(): SpeechSynthesisVoice | null {
   )
 }
 
+/** For the styleguide: the voice the Herold would use now, or null when he stays silent. */
+export const heroldVoiceName = () => (ENABLED ? (heroldVoice()?.name ?? null) : null)
+
 /** Call from the unlock tap: some browsers only let a page speak after one. */
 export function primeHerold() {
   if (!ENABLED || primed) return

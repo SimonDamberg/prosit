@@ -9,6 +9,7 @@ import { BRAND } from '../shared/content/ui'
 import { computeAwards, protocolRows } from '../shared/game/awards'
 import { placeOf, tallyDrinks } from '../shared/game/drinks'
 import { fmtLitres } from '../shared/game/format'
+import { statuteAt } from '../shared/game/schedule'
 import { DRINK_KINDS, type EventKind } from '../shared/game/types'
 import { Button, ConnectionBadge, LoadingScreen } from '../ui'
 import { DrinkPad } from './DrinkPad'
@@ -89,6 +90,7 @@ export function HomeScreen({ me, identity, members, night, events, connection, o
         </div>
         <ConnectionBadge status={connection} />
       </header>
+      {!ended && <p className="-mt-3 text-sm font-bold text-messing-deep">{statuteAt(events, now)}</p>}
 
       {ended ? (
         <>
