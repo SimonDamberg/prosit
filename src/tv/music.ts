@@ -1,4 +1,4 @@
-// The band in the corner: a YouTube playlist that plays on the TV all night, and the real
+// The band in the corner: one long YouTube mix on repeat that plays on the TV all night, and the real
 // "Ein Prosit" that cuts it off whenever a PROSIT! strikes. Two hidden YouTube players, driven
 // through the IFrame Player API. This is the one sound that is not synthesized (see audio.ts for
 // the rest); if YouTube cannot be reached the night goes on without it.
@@ -7,13 +7,13 @@ import { play } from './audio'
 
 /** What to play. Both can be replaced in `.env.local` / the Vercel env without touching the code. */
 export const MUSIC = {
-  /** A YouTube playlist id (the `list=` part of its link): classic Wiesn hits. */
-  playlist: (import.meta.env.VITE_MUSIC_PLAYLIST as string | undefined) || 'PLX_mkrrU6sCGTfiO4smALX42wCC7U3kX9',
+  /** The YouTube video id (the `v=` part of its link) of the background music, played on repeat: two hours of beer hall. */
+  background: (import.meta.env.VITE_MUSIC_VIDEO as string | undefined) || 'WjdiMxXGZaE',
   /** YouTube video ids of "Ein Prosit der Gemütlichkeit", best first. The next is tried if one refuses to be embedded. */
-  prosit: ((import.meta.env.VITE_PROSIT_VIDEO as string | undefined) || 'dS8jpTozw0w,ZXMYAASb1xw,vBKVPmYVqjc,GFPhH2-kip8').split(',').map((id) => id.trim()),
-  /** 0 to 100. The playlist is background, the Prosit is not. */
+  prosit: ((import.meta.env.VITE_PROSIT_VIDEO as string | undefined) || 'zdHxMkklvDI').split(',').map((id) => id.trim()),
+  /** 0 to 100. The background is background, the Prosit is not. */
   volume: 45,
-  /** The playlist while an event is on the stage, so the fanfares and the room can be heard. */
+  /** The background while an event is on the stage, so the fanfares and the room can be heard. */
   ducked: 12,
   prositVolume: 100,
 } as const
@@ -23,13 +23,10 @@ interface Player {
   playVideo(): void
   pauseVideo(): void
   stopVideo(): void
-  nextVideo(): void
-  playVideoAt(index: number): void
+  seekTo(seconds: number, allowSeekAhead: boolean): void
   loadVideoById(id: string, startSeconds?: number): void
   cueVideoById(id: string): void
   setVolume(volume: number): void
-  setShuffle(on: boolean): void
-  setLoop(on: boolean): void
   /** -1 unstarted, 0 ended, 1 playing, 2 paused, 3 buffering, 5 cued. */
   getPlayerState(): number
 }
@@ -101,7 +98,7 @@ function mount(): HTMLElement {
 }
 
 /**
- * Starts the playlist. Call from the tap that unlocks the sound: a browser lets a page start
+ * Starts the background music. Call from the tap that unlocks the sound: a browser lets a page start
  * music only after one. Safe to call again.
  */
 export function startMusic() {
@@ -113,17 +110,20 @@ export function startMusic() {
       const quiet = { controls: 0, disablekb: 1, playsinline: 1, rel: 0 }
       band = new YT.Player(mount(), {
         ...size,
-        playerVars: { ...quiet, listType: 'playlist', list: MUSIC.playlist },
+        videoId: MUSIC.background,
+        playerVars: quiet,
         events: {
           onReady: () => {
             bandReady = true
-            band!.setShuffle(true)
-            band!.setLoop(true)
             band!.setVolume(level())
-            if (!singing) band!.playVideoAt(0)
+            if (!singing) band!.playVideo()
           },
-          // A video that is gone or may not be embedded: on to the next one.
-          onError: () => band!.nextVideo(),
+          // On repeat: the end of the mix is its beginning.
+          onStateChange: ({ data }) => {
+            if (data !== ENDED) return
+            band!.seekTo(0, true)
+            band!.playVideo()
+          },
         },
       })
       singer = new YT.Player(mount(), {
@@ -161,7 +161,7 @@ export function startMusic() {
 }
 
 /**
- * The playlist stops dead and "Ein Prosit" starts from the top. False if it cannot (no YouTube,
+ * The background music stops dead and "Ein Prosit" starts from the top. False if it cannot (no YouTube,
  * no video that may be embedded): the caller then plays the synthesized tune instead.
  */
 export function playProsit(): boolean {
@@ -173,7 +173,7 @@ export function playProsit(): boolean {
   return true
 }
 
-/** The Prosit is over (or the stage is clear): back to the playlist. */
+/** The Prosit is over (or the stage is clear): back to the background music. */
 export function stopProsit() {
   if (!singing) return
   singing = false
@@ -181,20 +181,20 @@ export function stopProsit() {
   if (bandReady) band?.playVideo()
 }
 
-/** An event is on the stage, or the stage is clear again. The playlist steps back while one is. */
+/** An event is on the stage, or the stage is clear again. The background steps back while one is. */
 export function setStageBusy(on: boolean) {
   busy = on
   if (!on) stopProsit()
   if (bandReady) band?.setVolume(level())
 }
 
-/** Der Herold is speaking (herold.ts): the playlist steps back for him too. */
+/** Der Herold is speaking (herold.ts): the background steps back for him too. */
 export function setHeroldBusy(on: boolean) {
   speaking = on
   if (bandReady) band?.setVolume(level())
 }
 
-/** The playlist's volume: ducked while an event has the stage or the Herold speaks. */
+/** The background's volume: ducked while an event has the stage or the Herold speaks. */
 function level(): number {
   return busy || speaking ? MUSIC.ducked : MUSIC.volume
 }

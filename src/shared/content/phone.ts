@@ -24,7 +24,7 @@ export const HOME = {
   statsTitle: 'Ditt protokoll',
   litres: 'liter',
   litresShort: 'L',
-  litresLabel: 'Ädla drycker',
+  litresLabel: 'Drycker',
   place: 'Placering',
   placeOf: (place: number, of: number) => `${place} av ${of}`,
   noPlace: 'Oplacerad',

@@ -236,7 +236,7 @@ function Music() {
         </Button>
       </div>
       <p className="text-weste-dim" data-music={JSON.stringify(state)}>
-        Spellista {MUSIC.playlist} ({state.bandReady ? 'redo' : state.started ? 'laddar' : 'ej startad'}), Prosit-video {state.video} (
+        Bakgrund {MUSIC.background} ({state.bandReady ? 'redo' : state.started ? 'laddar' : 'ej startad'}), Prosit-video {state.video} (
         {state.singerReady ? 'redo' : 'ej redo'}){state.singing ? ', sjunger' : ''}
       </p>
     </Section>

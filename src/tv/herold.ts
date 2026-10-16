@@ -1,5 +1,6 @@
 // Der Herold: the TV reads verdicts, Strafen and honours aloud with the browser's speech
-// synthesis, in a German voice. Synthesized like every other TV sound (no files), TV only, and
+// synthesis. The lines are Swedish with German shouts, so a Swedish voice reads them; a German
+// one is the fallback. Never the browser's default voice, which is usually English. Synthesized like every other TV sound (no files), TV only, and
 // silent where the browser has no voices. Off with VITE_HEROLD=off.
 import type { MemberRow } from '../lib/types'
 import { HEROLD } from '../shared/content/tv'
@@ -15,12 +16,15 @@ const PITCH = 0.85
 
 let primed = false
 
-/** The best German voice the browser has, or any voice, or none. Voices load late in Chrome. */
-function germanVoice(): SpeechSynthesisVoice | null {
+/** The best Swedish voice the browser has, else a German one, else none. Voices load late in Chrome. */
+function heroldVoice(): SpeechSynthesisVoice | null {
   const voices = speechSynthesis.getVoices()
+  const lang = (v: SpeechSynthesisVoice) => v.lang.replace('_', '-').toLowerCase()
   return (
-    voices.find((v) => v.lang === 'de-DE' && /google|anna|markus|yannick/i.test(v.name)) ??
-    voices.find((v) => v.lang.startsWith('de')) ??
+    voices.find((v) => lang(v) === 'sv-se' && /google|alva|klara|oskar|sofie|mattias/i.test(v.name)) ??
+    voices.find((v) => lang(v).startsWith('sv')) ??
+    voices.find((v) => lang(v) === 'de-de' && /google|anna|markus|yannick/i.test(v.name)) ??
+    voices.find((v) => lang(v).startsWith('de')) ??
     null
   )
 }
@@ -37,10 +41,12 @@ export function primeHerold() {
 export function say(text: string, delayMs = 0) {
   if (!ENABLED || !primed || !text) return
   setTimeout(() => {
+    // No Swedish or German voice: stay silent rather than read Swedish in English.
+    const voice = heroldVoice()
+    if (!voice) return
     const line = new SpeechSynthesisUtterance(text)
-    const voice = germanVoice()
-    if (voice) line.voice = voice
-    line.lang = voice?.lang ?? 'de-DE'
+    line.voice = voice
+    line.lang = voice.lang
     line.rate = RATE
     line.pitch = PITCH
     line.onstart = () => setHeroldBusy(true)

@@ -3,7 +3,7 @@ import type { DrinkKind } from '../game/types'
 
 export const DRINK_LABELS: Record<DrinkKind, string> = {
   ol: 'Öl',
-  mass: 'Maß',
+  mass: 'Sejdel',
   schnaps: 'Schnaps',
   wasser: 'Wasser',
 }

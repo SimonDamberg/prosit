@@ -25,7 +25,7 @@ is the shared backend. There is no game master: the app paces itself.
 - **No em dash** (U+2014) anywhere under `src/`, in any language. A test enforces this. Use a
   comma, a period or parentheses instead. In source code write `'—'` if you must refer to it.
 - **Audio on the TV only.** Phones stay silent. Event sounds are synthesized with Web Audio (no
-  audio files). The one exception is the music: a YouTube playlist in the background and the real
+  audio files). The one exception is the music: a looped YouTube mix in the background and the real
   "Ein Prosit" at every PROSIT! (`src/tv/music.ts`), which must always fall back to the synth.
 - **The TV is pure output.** After the one "Starta kvällen" tap that unlocks audio, nothing on
   `/tv` needs touching. Every control lives on the phones.
@@ -187,13 +187,13 @@ plates, no condensed uppercase sans, no chunky sinking buttons).
 - `StageFrame` (`src/tv/EventStage.tsx`) is the stage without the engine; `Modal` takes `band`
   for event modals on the phone (`LiveModal`, `VerdictModal` use it).
 - **Music** (`src/tv/music.ts`): two hidden YouTube IFrame players, started by the unlock tap.
-  `MUSIC` holds the playlist id and the "Ein Prosit" video ids (override with
-  `VITE_MUSIC_PLAYLIST` / `VITE_PROSIT_VIDEO`). `EventStage` calls `playProsit()` when a PROSIT!
-  starts (false means: play the synth cue instead) and `setStageBusy()` to duck the playlist
+  `MUSIC` holds the background video id (looped) and the "Ein Prosit" video id (override with
+  `VITE_MUSIC_VIDEO` / `VITE_PROSIT_VIDEO`). `EventStage` calls `playProsit()` when a PROSIT!
+  starts (false means: play the synth cue instead) and `setStageBusy()` to duck the background
   while any event has the stage and to return to it afterwards.
 - **Der Herold** (`src/tv/herold.ts`): the TV reads verdicts, hand-given Strafen, achievements,
-  awards and a Machtwechsel aloud with `speechSynthesis` in a German voice (lines in `HEROLD`,
-  `src/shared/content/tv.ts`). Primed by the unlock tap, ducks the playlist, silent without
-  voices, off with `VITE_HEROLD=off`. Call `say(line, delayMs)` after the cue, never over it.
+  awards and a Machtwechsel aloud with `speechSynthesis` in a Swedish voice, German as fallback (lines in `HEROLD`,
+  `src/shared/content/tv.ts`). Primed by the unlock tap, ducks the background, silent without
+  a Swedish or German voice, off with `VITE_HEROLD=off`. Call `say(line, delayMs)` after the cue, never over it.
 - `/styleguide` (dev only) shows all of it. `/styleguide?stage=prosit-live` is one stage alone at
   full size; the scene names are in `src/styleguide/fixtures.ts`. Add a scene for a new stage.

@@ -30,7 +30,7 @@ export const TV_PACE = {
 
 export const TV_TOTALS = {
   litres: 'Liter totalt',
-  drinks: 'Ädla drycker',
+  drinks: 'Drycker',
   wasser: 'Wasser',
   strafen: 'Strafen',
 } as const
@@ -81,8 +81,8 @@ export const TV_CROWN = {
 } as const
 
 /**
- * Der Herold: what the TV reads aloud, in a German voice. Swedish words, German accent: that is
- * the joke. Short, so a line is over before the room has stopped laughing.
+ * Der Herold: what the TV reads aloud, in a Swedish voice (German if there is none). Swedish
+ * lines, German shouts. Short, so a line is over before the room has stopped laughing.
  */
 export const HEROLD = {
   strafe: (name: string, reason: string) => `Achtung! Strafe für ${name}. ${reason}.`,
