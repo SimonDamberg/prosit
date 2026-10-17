@@ -12,7 +12,8 @@ const ENABLED = (import.meta.env.VITE_HEROLD as string | undefined) !== 'off' &&
 
 /** Slower than normal speech: a herald proclaims, he does not chat. */
 const RATE = 0.92
-const PITCH = 0.85
+/** Natural pitch: lowering it turned the German woman into a man. */
+const PITCH = 1
 
 let primed = false
 
@@ -21,10 +22,10 @@ function heroldVoice(): SpeechSynthesisVoice | null {
   const voices = speechSynthesis.getVoices()
   const lang = (v: SpeechSynthesisVoice) => v.lang.replace('_', '-').toLowerCase()
   return (
-    // Anna, then Reed (the Mac voices the club chose), then whatever German the browser has.
+    // A German woman: Anna (the best quality one first), then other female German voices, then any German.
+    voices.find((v) => lang(v) === 'de-de' && /^anna\b.*(premium|enhanced|erweitert)/i.test(v.name)) ??
     voices.find((v) => lang(v) === 'de-de' && /^anna\b/i.test(v.name)) ??
-    voices.find((v) => lang(v) === 'de-de' && /^reed\b/i.test(v.name)) ??
-    voices.find((v) => lang(v) === 'de-de' && /google|markus|yannick/i.test(v.name)) ??
+    voices.find((v) => lang(v) === 'de-de' && /^(petra|helena|marlene|vicki|katja|google deutsch)/i.test(v.name)) ??
     voices.find((v) => lang(v).startsWith('de')) ??
     voices.find((v) => lang(v) === 'sv-se' && /google|alva|klara|oskar|sofie|mattias/i.test(v.name)) ??
     voices.find((v) => lang(v).startsWith('sv')) ??
