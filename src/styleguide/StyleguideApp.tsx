@@ -6,7 +6,7 @@ import { measureCue, play, unlockAudio } from '../tv/audio'
 import { AchievementPopup } from '../tv/AchievementPopup'
 import { StageFrame } from '../tv/EventStage'
 import { Finale } from '../tv/Finale'
-import { heroldVoiceName, primeHerold, say } from '../tv/herold'
+import { heroldVoiceName, heroldVoices, primeHerold, say } from '../tv/herold'
 import { MUSIC, musicState, playProsit, setStageBusy, startMusic, stopProsit } from '../tv/music'
 import { CUE_NAMES, CUES, cueLength, type CueName } from '../tv/score'
 import { Chip } from '../tv/stages/Chip'
@@ -270,6 +270,16 @@ function Herold() {
         ))}
       </div>
       <p className="text-weste-dim">Röst: {voice ?? 'ingen vald än (tryck på en rad)'}</p>
+      <details>
+        <summary className="cursor-pointer text-weste-dim">Alla röster i webbläsaren</summary>
+        <ul className="text-sm">
+          {heroldVoices()
+            .filter((v) => /\((de|sv)/i.test(v))
+            .map((v) => (
+              <li key={v}>{v}</li>
+            ))}
+        </ul>
+      </details>
     </Section>
   )
 }

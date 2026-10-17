@@ -12,8 +12,7 @@ const ENABLED = (import.meta.env.VITE_HEROLD as string | undefined) !== 'off' &&
 
 /** Slower than normal speech: a herald proclaims, he does not chat. */
 const RATE = 0.92
-/** Natural pitch: lowering it turned the German woman into a man. */
-const PITCH = 1
+const PITCH = 0.85
 
 let primed = false
 
@@ -22,10 +21,10 @@ function heroldVoice(): SpeechSynthesisVoice | null {
   const voices = speechSynthesis.getVoices()
   const lang = (v: SpeechSynthesisVoice) => v.lang.replace('_', '-').toLowerCase()
   return (
-    // A German woman: Anna (the best quality one first), then other female German voices, then any German.
-    voices.find((v) => lang(v) === 'de-de' && /^anna\b.*(premium|enhanced|erweitert)/i.test(v.name)) ??
+    // Reed, then Anna (the Mac voices the club chose), then whatever German the browser has.
+    voices.find((v) => lang(v) === 'de-de' && /^reed\b/i.test(v.name)) ??
     voices.find((v) => lang(v) === 'de-de' && /^anna\b/i.test(v.name)) ??
-    voices.find((v) => lang(v) === 'de-de' && /^(petra|helena|marlene|vicki|katja|google deutsch)/i.test(v.name)) ??
+    voices.find((v) => lang(v) === 'de-de' && /google|markus|yannick/i.test(v.name)) ??
     voices.find((v) => lang(v).startsWith('de')) ??
     voices.find((v) => lang(v) === 'sv-se' && /google|alva|klara|oskar|sofie|mattias/i.test(v.name)) ??
     voices.find((v) => lang(v).startsWith('sv')) ??
@@ -35,6 +34,9 @@ function heroldVoice(): SpeechSynthesisVoice | null {
 
 /** For the styleguide: the voice the Herold would use now, or null when he stays silent. */
 export const heroldVoiceName = () => (ENABLED ? (heroldVoice()?.name ?? null) : null)
+
+/** For the styleguide: every voice the browser offers, as "name (lang)". */
+export const heroldVoices = () => (typeof speechSynthesis === 'undefined' ? [] : speechSynthesis.getVoices().map((v) => `${v.name} (${v.lang})`))
 
 /** Call from the unlock tap: some browsers only let a page speak after one. */
 export function primeHerold() {
