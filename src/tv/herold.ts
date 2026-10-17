@@ -21,9 +21,9 @@ function heroldVoice(): SpeechSynthesisVoice | null {
   const voices = speechSynthesis.getVoices()
   const lang = (v: SpeechSynthesisVoice) => v.lang.replace('_', '-').toLowerCase()
   return (
-    // Reed, then Anna (the Mac voices the club chose), then whatever German the browser has.
-    voices.find((v) => lang(v) === 'de-de' && /^reed\b/i.test(v.name)) ??
+    // Anna, then Reed (the Mac voices the club chose), then whatever German the browser has.
     voices.find((v) => lang(v) === 'de-de' && /^anna\b/i.test(v.name)) ??
+    voices.find((v) => lang(v) === 'de-de' && /^reed\b/i.test(v.name)) ??
     voices.find((v) => lang(v) === 'de-de' && /google|markus|yannick/i.test(v.name)) ??
     voices.find((v) => lang(v).startsWith('de')) ??
     voices.find((v) => lang(v) === 'sv-se' && /google|alva|klara|oskar|sofie|mattias/i.test(v.name)) ??
