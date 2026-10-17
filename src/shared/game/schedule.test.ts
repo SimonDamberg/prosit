@@ -501,7 +501,7 @@ describe('nextAction', () => {
     expect(nextAction({ ...base, night: { ...base.night, intervalMin: 3 } }, now).type).toBe('spawn')
   })
 
-  it('resolves a PROSIT! after its deadline, or as soon as everyone has answered', () => {
+  it('resolves a PROSIT! only after its deadline, even when everyone has answered (the song finishes)', () => {
     const live = event({})
     const state = { ...base, events: [live] }
     expect(nextAction(state, live.endsAt + RESOLVE_GRACE_MS - 1).type).toBe('wait')
@@ -510,7 +510,8 @@ describe('nextAction', () => {
     const two = ['a', 'b'].map((memberId) => ({ eventId: 'e1', memberId }))
     expect(nextAction({ ...state, responses: two }, T0 + 5).type).toBe('wait')
     const all = [...two, { eventId: 'e1', memberId: 'c' }]
-    expect(nextAction({ ...state, responses: all }, T0 + 5)).toEqual({ type: 'resolve', event: live })
+    expect(nextAction({ ...state, responses: all }, T0 + 5).type).toBe('wait')
+    expect(nextAction({ ...state, responses: all }, live.endsAt + RESOLVE_GRACE_MS)).toEqual({ type: 'resolve', event: live })
     // Answers to some other event do not count.
     const other = [...two, { eventId: 'e0', memberId: 'c' }]
     expect(nextAction({ ...state, responses: other }, T0 + 5).type).toBe('wait')

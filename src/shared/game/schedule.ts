@@ -42,7 +42,8 @@ export const ANSWERED_KINDS: readonly EventKind[] = [
   'stadgeandring',
 ]
 
-export const PROSIT_MS = 60_000
+/** The length of "Ein Prosit" (42 s) and a little: the song is never cut off, so this is not capped by the interval. */
+export const PROSIT_MS = 45_000
 export const REGEL_MS = 10 * 60_000
 export const DUELL_MS = 45_000
 export const ABSTIMMUNG_MS = 60_000
@@ -139,7 +140,7 @@ export function planEvent(
 
   switch (kind) {
     case 'prosit':
-      return { seq, kind, payload: { kind }, gapMs, durationMs: lasts(PROSIT_MS) }
+      return { seq, kind, payload: { kind }, gapMs, durationMs: PROSIT_MS }
     case 'regel':
       return { seq, kind, payload: { kind, rule: draw(RULES, 0) }, gapMs, durationMs: lasts(REGEL_MS) }
     case 'duell': {
@@ -314,7 +315,9 @@ export function nextAction(state: EngineState, now: number, force: boolean | Eve
 
   for (const event of live) {
     const due = responders(event.payload, memberIds)
+    // A PROSIT! always runs for the whole song, so it never closes early.
     const everyone =
+      event.kind !== 'prosit' &&
       due !== null &&
       due.length > 0 &&
       due.every((id) => state.responses.some((r) => r.eventId === event.id && r.memberId === id))
@@ -328,13 +331,12 @@ export function nextAction(state: EngineState, now: number, force: boolean | Eve
   const seq = (events.at(-1)?.seq ?? 0) + 1
   const prosits = events.filter((e) => e.kind === 'prosit')
   const programme = events.filter((e) => e.kind !== 'prosit')
-  const intervalMs = night.intervalMin * 60_000
   const prosit: EventPlan = {
     seq,
     kind: 'prosit',
     payload: { kind: 'prosit' },
     gapMs: prositGapMs(night.seed, prosits.length, night.intervalMin),
-    durationMs: Math.round(Math.min(PROSIT_MS, intervalMs)),
+    durationMs: PROSIT_MS,
   }
   const forceKind = typeof force === 'string' && force !== 'prosit' ? force : undefined
   const next: EventPlan = { ...planEvent(night.seed, programme.length + 1, night.intervalMin, memberIds, forceKind), seq }

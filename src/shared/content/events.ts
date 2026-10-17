@@ -33,6 +33,7 @@ export const NIGHT = {
   endText: 'Protokollet stängs, inga fler drycker eller Strafen förs in, och TV:n håller prisutdelningen. Det går inte att ångra.',
   endConfirm: 'Ja, avsluta',
   endCancel: 'Nej, vi fortsätter',
+  callProsit: 'Ropa ut ett Prosit!',
   devTrigger: 'Nästa händelse nu (dev)',
   devKinds: {
     prosit: 'Prosit',

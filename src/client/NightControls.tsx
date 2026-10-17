@@ -64,6 +64,9 @@ export function NightControls({ night, identity, onTrigger }: NightControlsProps
           {NIGHT.slower}
         </Button>
       </div>
+      <Button block disabled={busy} onClick={() => run(() => onTrigger('prosit'))}>
+        {NIGHT.callProsit}
+      </Button>
       <Button variant="danger" block disabled={busy} onClick={() => setConfirmEnd(true)}>
         {NIGHT.end}
       </Button>
